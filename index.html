@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>ACE ENGLISH — 수능 영어</title>
+  <meta name="theme-color" content="#0B1220" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html,body{background:#0B1220;color:#e5e7eb} input,textarea,select,button{font-size:16px}
+  </style>
+</head>
+<body>
+  <div id="app" class="mx-auto min-h-dvh max-w-md flex flex-col">
+    <!-- 헤더 -->
+    <header class="sticky top-0 z-30 border-b border-slate-800 bg-[#0b1220]/95 backdrop-blur">
+      <div class="px-4 py-3 flex items-center justify-between">
+        <h1 id="brandTitle" class="text-[15px] font-semibold">ACE ENGLISH</h1>
+        <button id="logoutBtn" class="hidden text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-700 hover:bg-slate-800">로그아웃</button>
+      </div>
+    </header>
+
+    <!-- 콘텐츠 -->
+    <main id="content" class="flex-1 px-4 pt-4 pb-24"></main>
+
+    <!-- 하단 탭 -->
+    <nav id="nav" class="hidden fixed inset-x-0 bottom-0 border-t border-slate-800 bg-[#0b1220]/90 backdrop-blur">
+      <div class="mx-auto max-w-md grid grid-cols-5">
+        <button data-tab="home"  class="nav-btn py-2.5 flex flex-col items-center text-slate-400 hover:text-white">홈</button>
+        <button data-tab="ann"   class="nav-btn py-2.5 flex flex-col items-center text-slate-400 hover:text-white">공지</button>
+        <button data-tab="sched" class="nav-btn py-2.5 flex flex-col items-center text-slate-400 hover:text-white">시간표</button>
+        <button data-tab="mat"   class="nav-btn py-2.5 flex flex-col items-center text-slate-400 hover:text-white">자료실</button>
+        <button data-tab="ai"    class="nav-btn py-2.5 flex flex-col items-center text-slate-400 hover:text-white">AI</button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 템플릿들 -->
+  <template id="loginTmpl">
+    <section class="mt-6 space-y-5">
+      <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-500 p-4 shadow-lg">
+        <p class="text-xs opacity-90">수능 영어 전문 — 즉시 채점 & 해설</p>
+        <h2 class="text-xl font-bold tracking-tight">ACE ENGLISH</h2>
+      </div>
+      <div class="rounded-2xl bg-[#0f172a] border border-slate-800 p-4">
+        <h3 class="font-semibold">학생 전용 입장</h3>
+        <form id="loginForm" class="mt-3 space-y-3">
+          <input id="classCode" placeholder="Class Code (예: 2749)" inputmode="numeric"
+                 class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"/>
+          <button class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-3 font-medium">입장하기</button>
+          <p class="text-[11px] text-slate-400">홈 화면에 추가(PWA) 가능</p>
+        </form>
+      </div>
+    </section>
+  </template>
+
+  <template id="homeTmpl">
+    <section class="space-y-4">
+      <div class="rounded-2xl border border-slate-800 bg-[#0f172a] p-4">
+        <p class="text-xs text-slate-300">오늘의 미션</p>
+        <h2 class="text-lg font-bold">Reading 2세트 + 오답정리</h2>
+        <ul id="focusList" class="mt-2 text-sm list-disc list-inside text-slate-300"></ul>
+      </div>
+      <div class="rounded-2xl bg-[#0f172a] border border-slate-800 p-4">
+        <h3 class="font-semibold">바로가기</h3>
+        <div id="quickLinks" class="mt-3 grid grid-cols-2 gap-2"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <a id="attendanceLink" target="_blank" class="rounded-2xl bg-emerald-600/20 border border-emerald-700/40 p-4 text-sm font-medium">출석 체크</a>
+        <a id="hwLink"         target="_blank" class="rounded-2xl bg-indigo-600/20  border border-indigo-700/40  p-4 text-sm font-medium">숙제 제출</a>
+      </div>
+    </section>
+  </template>
+
+  <template id="annTmpl">
+    <section id="annList" class="space-y-3"></section>
+  </template>
+
+  <template id="schedTmpl">
+    <section class="space-y-3">
+      <div class="rounded-2xl bg-[#0f172a] border border-slate-800 p-4">
+        <h3 class="font-semibold">주간 시간표</h3>
+        <ul id="schedList" class="mt-2 divide-y divide-slate-800"></ul>
+      </div>
+    </section>
+  </template>
+
+  <template id="matTmpl">
+    <section class="space-y-3">
+      <div class="rounded-2xl bg-[#0f172a] border border-slate-800 p-4">
+        <h3 class="font-semibold">자료실</h3>
+        <ul id="matList" class="mt-2 space-y-2"></ul>
+      </div>
+    </section>
+  </template>
+
+  <template id="aiTmpl">
+    <section class="space-y-4">
+      <div class="rounded-2xl bg-[#0f172a] border border-slate-800 p-4">
+        <h3 class="font-semibold">AI 즉시 피드백 (수능 영어)</h3>
+        <form id="aiForm" class="mt-3 space-y-3">
+          <label class="block text-sm">문제 유형</label>
+          <select id="taskType" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3">
+            <option value="mcq">객관식</option>
+            <option value="short">서술형</option>
+            <option value="writing">에세이</option>
+          </select>
+          <label class="block text-sm mt-2">문제 (객관식은 보기 A~E 포함)</label>
+          <textarea id="questionText" rows="5" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3" placeholder="지문 + 문제&#10;A) ...&#10;B) ...&#10;C) ...&#10;D) ...&#10;E) ..."></textarea>
+          <label class="block text-sm mt-2">정답 (선택)</label>
+          <input id="answerKey" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3" placeholder="예: C 또는 핵심 키워드"/>
+          <label class="block text-sm mt-2">학생 답안</label>
+          <textarea id="studentAnswer" rows="3" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3" placeholder="답안을 입력"></textarea>
+          <button class="w-full rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-3 font-medium">피드백 받기</button>
+        </form>
+      </div>
+      <div id="aiResult" class="hidden rounded-2xl bg-[#0f172a] border border-slate-800 p-4"></div>
+    </section>
+  </template>
+
+  <script>
+    // ===== 설정값 (필수로 바꿔주세요) =====
+    const CONFIG = {
+      brand: 'ACE ENGLISH',
+      classCode: '2749',
+      attendanceForm: 'https://forms.gle/your-attendance',
+      homeworkForm:   'https://forms.gle/your-homework',
+      aiEndpoint:     '/api/ai-feedback',
+      quickLinks: [
+        { label: '반 카톡방', url: '#' },
+        { label: 'Zoom 실시간', url: '#' },
+        { label: '단어장(Quizlet)', url: '#' },
+        { label: '오답노트 시트', url: '#' },
+      ],
+      announcements: [
+        { title:'9월 모평 해설 업로드', body:'자료실에서 21~30번 집중 해설 확인' },
+        { title:'주간 테스트',        body:'수요일 19:00 단어·문법 스피드 퀴즈' },
+      ],
+      schedule: [
+        { day:'월', time:'19:00–21:00', room:'B-203', note:'Reading' },
+        { day:'수', time:'19:00–21:00', room:'B-203', note:'Grammar' },
+        { day:'금', time:'19:00–21:30', room:'B-203', note:'모의고사' },
+      ],
+      materials: [
+        { title:'9월 모평 해설 PDF', url:'#' },
+        { title:'EBS 변형 세트 03', url:'#' },
+        { title:'문법 Sprint Day 4', url:'#' },
+      ],
+      focus: ['EBS 변형 2세트', '문법 오답 10개 복습', '단어장 DAY 12']
+    };
+
+    // ===== 유틸 =====
+    const $  = (s,p=document)=>p.querySelector(s);
+    const $$ = (s,p=document)=>Array.from(p.querySelectorAll(s));
+    const content = $('#content'), nav = $('#nav'), logoutBtn = $('#logoutBtn');
+
+    function render(tid){ const t=document.getElementById(tid); content.innerHTML=''; content.appendChild(t.content.cloneNode(true)); }
+    function setActive(tab){ $$('.nav-btn').forEach(b=>{b.classList.toggle('text-white',b.dataset.tab===tab); b.classList.toggle('text-slate-400',b.dataset.tab!==tab);}); }
+
+    function go(tab){
+      localStorage.setItem('tab', tab);
+      if(tab==='home'){
+        render('homeTmpl');
+        const ul = $('#focusList'); CONFIG.focus.forEach(x=>{const li=document.createElement('li'); li.textContent=x; ul.appendChild(li);});
+        const ql = $('#quickLinks'); CONFIG.quickLinks.forEach(l=>{const a=document.createElement('a'); a.href=l.url; a.target='_blank'; a.className='rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-3 text-sm text-center hover:bg-slate-800'; a.textContent=l.label; ql.appendChild(a);});
+        $('#attendanceLink').href = CONFIG.attendanceForm;
+        $('#hwLink').href         = CONFIG.homeworkForm;
+      }
+      if(tab==='ann'){ render('annTmpl'); const list=$('#annList'); CONFIG.announcements.forEach(a=>{const card=document.createElement('article'); card.className='rounded-2xl bg-[#0f172a] border border-slate-800 p-4'; card.innerHTML=`<h4 class="font-semibold">${a.title}</h4><p class="text-sm text-slate-300 mt-1">${a.body}</p>`; list.appendChild(card);}); }
+      if(tab==='sched'){ render('schedTmpl'); const ul=$('#schedList'); CONFIG.schedule.forEach(s=>{const li=document.createElement('li'); li.className='flex items-center justify-between py-3'; li.innerHTML=`<div><p class="font-medium">${s.day} • ${s.time}</p><p class="text-sm text-slate-400">${s.room} · ${s.note}</p></div>`; ul.appendChild(li);}); }
+      if(tab==='mat'){ render('matTmpl'); const ul=$('#matList'); CONFIG.materials.forEach(m=>{const li=document.createElement('li'); li.innerHTML=`<a class="block rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm hover:bg-slate-800" href="${m.url}" target="_blank">${m.title}</a>`; ul.appendChild(li);}); }
+      if(tab==='ai'){
+        render('aiTmpl');
+        $('#aiForm').addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          const payload = {
+            taskType: $('#taskType').value,
+            questionText: $('#questionText').value.trim(),
+            answerKey: $('#answerKey').value.trim(),
+            studentAnswer: $('#studentAnswer').value.trim()
+          };
+          const box = $('#aiResult');
+          box.classList.remove('hidden');
+          box.innerHTML = `<p class="text-sm text-slate-300">분석 중…</p>`;
+          try{
+            const res = await fetch(CONFIG.aiEndpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            if(!res.ok) throw new Error('network');
+            const data = await res.json();
+            box.innerHTML = renderFeedbackHTML(data);
+          }catch(err){
+            box.innerHTML = `<p class="text-sm text-red-300">피드백 실패. 잠시 후 다시 시도하세요.</p>`;
+          }
+        });
+      }
+      setActive(tab);
+    }
+
+    function renderFeedbackHTML(d){
+      const parts=[];
+      parts.push(`<div class="space-y-3">`);
+      if(d.score) parts.push(`<p class="text-sm">점수: <b>${d.score.value}/${d.score.max}</b></p>`);
+      if(d.verdict) parts.push(`<p class="text-sm">${d.verdict}</p>`);
+      if(Array.isArray(d.corrections)&&d.corrections.length) parts.push(`<div><h5 class="font-medium mb-1">교정</h5><ul class="list-disc list-inside text-sm text-slate-300">${d.corrections.map(c=>`<li>${c}</li>`).join('')}</ul></div>`);
+      if(d.explanation) parts.push(`<div><h5 class="font-medium mb-1">해설</h5><p class="text-sm text-slate-300 whitespace-pre-wrap">${d.explanation}</p></div>`);
+      if(Array.isArray(d.nextSteps)&&d.nextSteps.length) parts.push(`<div><h5 class="font-medium mb-1">다음 학습</h5><ul class="list-disc list-inside text-sm text-slate-300">${d.nextSteps.map(n=>`<li>${n}</li>`).join('')}</ul></div>`);
+      parts.push(`</div>`);
+      return parts.join('');
+    }
+
+    // 로그인 게이트
+    const authed = ()=>localStorage.getItem('isAuthed')==='1';
+    function showLogin(){ nav.classList.add('hidden'); logoutBtn.classList.add('hidden'); render('loginTmpl');
+      $('#brandTitle').textContent = CONFIG.brand;
+      $('#loginForm').addEventListener('submit',(e)=>{e.preventDefault(); const code=$('#classCode').value.trim(); if(code===CONFIG.classCode){localStorage.setItem('isAuthed','1'); init();} else alert('클래스 코드가 올바르지 않습니다.');});
+    }
+    function showApp(){ nav.classList.remove('hidden'); logoutBtn.classList.remove('hidden'); go(localStorage.getItem('tab')||'home'); }
+    logoutBtn.addEventListener('click', ()=>{localStorage.removeItem('isAuthed'); init();});
+    document.addEventListener('click',(e)=>{ const btn=e.target.closest('.nav-btn'); if(btn) go(btn.dataset.tab); });
+
+    function init(){ document.title = CONFIG.brand + ' — 수능 영어'; $('#brandTitle').textContent = CONFIG.brand; if(authed()) showApp(); else showLogin(); }
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
