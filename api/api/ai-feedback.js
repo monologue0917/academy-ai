@@ -1,84 +1,179 @@
-// api/ai-feedback.js  (Vercel Serverless Function)
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+// api/ai-feedback.js
+// Vercel Serverless Function (No SDK, uses fetch)
 
-  const { taskType, questionText, answerKey, studentAnswer } = req.body || {};
-  if (!taskType || !questionText || !studentAnswer) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
+const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const TIMEOUT_MS = 30000;
+const MAX_TOKENS = 600;
+const TEMPERATURE = 0.2;
 
-  // 객관식은 서버에서 1차 자동 채점 (정답키가 A~E일 때)
-  if (taskType === "mcq" && /^[A-E]$/i.test(String(answerKey||"").trim())) {
-    const a = String(answerKey).trim().toUpperCase();
-    const s = String(studentAnswer).trim().toUpperCase();
-    const correct = a === s;
-    // 해설은 아래 LLM에서 생성
-  }
+function emptyResult() {
+  return {
+    score: { value: 0, max: 0 },
+    verdict: "",
+    corrections: [],
+    explanation: "",
+    nextSteps: [],
+  };
+}
 
-  // JSON 형식 강제 시스템 프롬프트
-  const system = `You are a grader for Korean CSAT English.
-Return STRICT JSON:
+function safeParseJSON(text) {
+  try { return JSON.parse(text); } catch { return null; }
+}
+
+const SYSTEM = `
+You are an English exam grader specialized in Korean CSAT (수능) English.
+Return STRICT JSON only. No prose before/after JSON.
+Language: Korean for feedback; use short English examples when needed.
+JSON schema:
 {
-  "taskType": "mcq|short|writing",
   "score": {"value": number, "max": number},
   "verdict": string,
   "corrections": string[],
   "explanation": string,
   "nextSteps": string[]
 }
-Keep it concise; use CSAT-style reasoning.`;
+Rules:
+- 객관식(mcq): answerKey 있으면 정오답. score=1/1 또는 0/1.
+- 서술형(short): answerKey(키워드/문장) 대비 부분점수 허용(0~5).
+- 에세이(writing): 0~9점(구성/논리/내용/언어).
+- 간결한 근거. JSON만 출력.
+`;
 
-  const maxMap = { mcq: 1, short: 5, writing: 9 };
-  const scoreMax = maxMap[taskType] ?? 5;
+function buildUserPrompt({ taskType, questionText, answerKey, studentAnswer }) {
+  const t = (taskType || "mcq").toLowerCase();
+  const q = (questionText || "").trim();
+  const a = (answerKey || "").trim();
+  const s = (studentAnswer || "").trim();
 
-  const user = `
-[Task]: ${taskType}
-[ScoreMax]: ${scoreMax}
-[Question]:
-${questionText}
+  let rubric = "";
+  if (t === "mcq") {
+    rubric = `Task: Multiple Choice
+Question+Options:
+${q}
 
-[OfficialAnswer](optional):
-${answerKey || "(none)"}
+Official answerKey: ${a || "(없음; 최선의 정답 추론)"}
+Student answer: ${s || "(무응답)"}
 
-[StudentAnswer]:
-${studentAnswer}
-  `.trim();
+Score rule: correct=1/1, wrong=0/1.`;
+  } else if (t === "short") {
+    rubric = `Task: Short Answer
+Question:
+${q}
+
+Reference answerKey (keywords/phrases or summary):
+${a || "(없음; 핵심 요지로 자체 채점)"}
+
+Student answer:
+${s || "(무응답)"}
+
+Score rule: 0~5 with partial credit.`;
+  } else {
+    rubric = `Task: Essay/Writing
+Prompt:
+${q}
+
+Reference:
+${a || "(없음)"}
+
+Student answer:
+${s || "(무응답)"}
+
+Score rule: 0~9 (organization, logic, content, language).`;
+  }
+
+  return rubric + `
+
+Return JSON ONLY (no markdown).`;
+}
+
+// simple timeout wrapper
+function withTimeout(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("timeout")), ms);
+    promise.then(v => { clearTimeout(id); resolve(v); })
+           .catch(e => { clearTimeout(id); reject(e); });
+  });
+}
+
+// (옵션) 헬스체크용 GET 핑
+export default async function handler(req, res) {
+  if (req.method === "GET") {
+    return res.status(200).json({ ok: true, env: !!process.env.OPENAI_API_KEY, model: MODEL });
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Only POST allowed" });
+  }
+
+  let body = req.body || {};
+  if (typeof body === "string") {
+    try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Invalid JSON body" }); }
+  }
+
+  const { taskType, questionText, answerKey, studentAnswer } = body || {};
+  if (!questionText && !studentAnswer) {
+    return res.status(400).json({ error: "Missing fields: questionText or studentAnswer" });
+  }
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: "OPENAI_API_KEY not set" });
+  }
+
+  const user = buildUserPrompt({ taskType, questionText, answerKey, studentAnswer });
 
   try {
-    // OpenAI 호출 (다른 LLM으로 바꾸려면 여기만 교체)
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    const r = await withTimeout(fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
+        model: MODEL,
+        temperature: TEMPERATURE,
+        max_tokens: MAX_TOKENS,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: SYSTEM },
           { role: "user", content: user }
         ]
       })
-    });
+    }), TIMEOUT_MS);
 
     if (!r.ok) {
-      const t = await r.text();
-      return res.status(502).json({ error: "LLM upstream error", detail: t });
+      const detail = await r.text();
+      const out = emptyResult();
+      out.verdict = "피드백 실패";
+      out.explanation = `LLM 응답 오류: ${detail.slice(0, 300)}`;
+      return res.status(502).json(out);
     }
+
     const data = await r.json();
-    const content = data?.choices?.[0]?.message?.content || "{}";
-    let parsed;
-    try { parsed = JSON.parse(content); }
-    catch { parsed = { taskType, score: { value: 0, max: scoreMax }, verdict: "Parsing failed", corrections: [], explanation: "", nextSteps: [] }; }
+    const content = data?.choices?.[0]?.message?.content || "";
+    const parsed = safeParseJSON(content);
+    if (!parsed) {
+      const out = emptyResult();
+      out.verdict = "응답 형식 오류(재시도)";
+      out.explanation = "AI 응답을 해석하지 못했습니다. 다시 시도해 주세요.";
+      return res.status(200).json(out);
+    }
 
-    // 안전 보정
-    if (!parsed?.score?.max) parsed.score = { value: Number(parsed?.score?.value||0), max: scoreMax };
-    parsed.score.value = Math.max(0, Math.min(Number(parsed.score.value || 0), Number(parsed.score.max)));
-    parsed.taskType = parsed.taskType || taskType;
-    parsed.corrections = Array.isArray(parsed.corrections) ? parsed.corrections : [];
-    parsed.nextSteps = Array.isArray(parsed.nextSteps) ? parsed.nextSteps : [];
+    const out = emptyResult();
+    out.score = parsed.score || out.score;
+    out.verdict = parsed.verdict || "";
+    out.corrections = Array.isArray(parsed.corrections) ? parsed.corrections.slice(0,5) : [];
+    out.explanation = parsed.explanation || "";
+    out.nextSteps = Array.isArray(parsed.nextSteps) ? parsed.nextSteps.slice(0,3) : [];
+    return res.status(200).json(out);
 
-    return res.status(200).json(parsed);
-  } catch (e) {
-    return res.status(500).json({ error: "Server error", detail: String(e) });
+  } catch (err) {
+    const out = emptyResult();
+    if ((err?.message || "").includes("timeout")) {
+      out.verdict = "시간 초과";
+      out.explanation = "서버 응답이 지연되었습니다. 잠시 후 다시 시도하세요.";
+      return res.status(504).json(out);
+    }
+    out.verdict = "피드백 실패";
+    out.explanation = "일시적인 오류가 발생했습니다. 다시 시도하세요.";
+    return res.status(500).json(out);
   }
 }
