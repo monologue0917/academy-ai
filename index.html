@@ -11,6 +11,9 @@
   <!-- NAV -->
   <nav class="flex gap-4 border-b border-slate-800 pb-2">
     <button onclick="go('home')" class="hover:text-indigo-400">홈</button>
+    <button onclick="go('ann')"  class="hover:text-indigo-400">공지</button>
+    <button onclick="go('sched')" class="hover:text-indigo-400">시간표</button>
+    <button onclick="go('mat')"  class="hover:text-indigo-400">자료실</button>
     <button onclick="go('ai')" class="hover:text-indigo-400">AI 첨삭</button>
     <button onclick="go('mock')" class="hover:text-indigo-400">모의고사</button>
     <button onclick="go('review')" class="hover:text-indigo-400">오답</button>
@@ -18,6 +21,24 @@
 
   <!-- VIEW -->
   <main id="view"></main>
+  <!-- LOGIN -->
+<template id="loginTmpl">
+  <section class="mt-6 space-y-5">
+    <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-500 p-4 shadow-lg">
+      <p class="text-xs opacity-90">수능 영어 전문 — 즉시 채점 & 해설</p>
+      <h2 class="text-xl font-bold tracking-tight">ACE ENGLISH</h2>
+    </div>
+    <div class="card">
+      <h3 class="font-semibold">학생 전용 입장</h3>
+      <form id="loginForm" class="mt-3 space-y-3">
+        <input id="classCode" placeholder="Class Code (예: 2749)" inputmode="numeric"
+               class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"/>
+        <button class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-3 font-medium">입장하기</button>
+        <p class="text-[11px] text-slate-400">홈 화면에 추가(PWA) 가능</p>
+      </form>
+    </div>
+  </section>
+</template>
 
   <!-- HOME -->
 <template id="homeTmpl">
@@ -154,16 +175,52 @@
     </section>
   </template>
 
+  <!-- 공지 -->
+<template id="annTmpl">
+  <section id="annList" class="space-y-3"></section>
+</template>
+
+<!-- 시간표 -->
+<template id="schedTmpl">
+  <section class="space-y-3">
+    <div class="card">
+      <h3 class="font-semibold">주간 시간표</h3>
+      <ul id="schedList" class="mt-2 divide-y divide-slate-800"></ul>
+    </div>
+  </section>
+</template>
+
+<!-- 자료실 -->
+<template id="matTmpl">
+  <section class="space-y-3">
+    <div class="card">
+      <h3 class="font-semibold">자료실</h3>
+      <ul id="matList" class="mt-2 space-y-2"></ul>
+    </div>
+  </section>
+</template>
+
+
   <!-- SCRIPT -->
   <script>
-  const CONFIG = {
-    aiEndpoint: "/api/ai-feedback",
-    schedule: [
-      { day:'월', time:'19:00–21:00', room:'B-203' },
-      { day:'수', time:'19:00–21:00', room:'B-203' },
-      { day:'금', time:'19:00–21:00', room:'B-203' }
-    ]
-  };
+ const CONFIG = {
+  aiEndpoint: "/api/ai-feedback",
+  announcements: [
+    { title:'9월 모평 해설 업로드', body:'자료실에서 21~30번 집중 해설 확인' },
+    { title:'주간 테스트',        body:'수요일 19:00 단어·문법 스피드 퀴즈' },
+  ],
+  schedule: [
+    { day:'월', time:'19:00–21:00', room:'B-203', note:'Reading' },
+    { day:'수', time:'19:00–21:00', room:'B-203', note:'Grammar' },
+    { day:'금', time:'19:00–21:30', room:'B-203', note:'모의고사' },
+  ],
+  materials: [
+    { title:'9월 모평 해설 PDF', url:'#' },
+    { title:'EBS 변형 세트 03', url:'#' },
+    { title:'문법 Sprint Day 4', url:'#' },
+  ],
+  classCode: '2749',
+};
 
 // === 수업 카운트다운 유틸 ===
 const WEEKMAP = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
@@ -236,6 +293,35 @@ function setupClassCountdown(){
   tick();
   setInterval(tick, 1000);
 }
+// ===== 로그인 제어 =====
+function authed(){ return localStorage.getItem('isAuthed')==='1'; }
+
+// 로그인 상태 확인
+function authed(){ return localStorage.getItem('isAuthed')==='1'; }
+
+// 로그인 화면 보여주기
+function showLogin(){
+  const t = document.getElementById('loginTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+
+  const form = document.getElementById('loginForm');
+  form.onsubmit = (e)=>{
+    e.preventDefault();
+    const code = document.getElementById('classCode').value.trim();
+    if(code === (CONFIG.classCode||'')){
+      localStorage.setItem('isAuthed','1');
+      go('home');
+    }else{
+      alert('클래스 코드가 올바르지 않습니다.');
+    }
+  };
+}
+
+// 앱 시작 (로그인 여부에 따라 분기)
+function initApp(){
+  if(authed()) go('home');
+  else showLogin();
+}
 
   function go(tab){
     const t = document.getElementById(tab+'Tmpl');
@@ -243,6 +329,45 @@ function setupClassCountdown(){
     if(tab==='home') initHome();
     if(tab==='ai') initAI();
     if(tab==='review') renderReviewTab('all');
+    if(tab==='ann'){  // 공지
+  const t = document.getElementById('annTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+  const list = document.getElementById('annList');
+  list.innerHTML = (CONFIG.announcements||[]).map(a=>`
+    <article class="card">
+      <h4 class="font-semibold">${a.title}</h4>
+      <p class="text-sm text-slate-300 mt-1">${a.body}</p>
+    </article>
+  `).join('');
+}
+
+if(tab==='sched'){ // 시간표
+  const t = document.getElementById('schedTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+  const ul = document.getElementById('schedList');
+  ul.innerHTML = (CONFIG.schedule||[]).map(s=>`
+    <li class="flex items-center justify-between py-3">
+      <div>
+        <p class="font-medium">${s.day} • ${s.time}</p>
+        <p class="text-sm text-slate-400">${s.room}${s.note?` · ${s.note}`:''}</p>
+      </div>
+    </li>
+  `).join('');
+}
+
+if(tab==='mat'){  // 자료실
+  const t = document.getElementById('matTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+  const ul = document.getElementById('matList');
+  ul.innerHTML = (CONFIG.materials||[]).map(m=>`
+    <li>
+      <a class="block rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm hover:bg-slate-800"
+         href="${m.url}" target="_blank">${m.title}</a>
+    </li>
+  `).join('');
+}
+
+    
   }
 
   /* ===== HOME ===== */
@@ -566,8 +691,11 @@ function setupClassCountdown(){
       </div>`;
   }
 
-  go('home');
-  </script>
+  initApp();
+  </script> 
+
+
+
 
   <style>
     .card { background: rgba(30,41,59,0.6); border: 1px solid rgba(51,65,85,0.6); padding: 1rem; border-radius: 0.75rem; }
