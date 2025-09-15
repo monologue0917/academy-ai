@@ -19,6 +19,22 @@
     <button onclick="go('review')" class="hover:text-indigo-400">오답</button>
   </nav>
 
+  <body>
+  <div id="app">
+
+    <!-- ✅ 여기다가 헤더 넣으시면 돼요 -->
+    <header class="sticky top-0 z-30 border-b border-slate-800 bg-[#0b1220]/95 backdrop-blur">
+      <div class="px-4 py-3 flex items-center justify-between">
+        <h1 id="brandTitle" class="text-[15px] font-semibold">ACE ENGLISH</h1>
+        <button id="logoutBtn"
+          class="hidden text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-700 hover:bg-slate-800">
+          로그아웃
+        </button>
+      </div>
+    </header>
+
+
+
   <!-- VIEW -->
   <main id="view"></main>
   <!-- LOGIN -->
@@ -221,6 +237,48 @@
   ],
   classCode: '2749',
 };
+
+// ===== 로그인 / 로그아웃 제어 =====
+const authed = () => localStorage.getItem('isAuthed') === '1';
+
+function showLogin() {
+  // 로그인 화면만 보이게
+  document.getElementById('logoutBtn').classList.add('hidden');
+  render('loginTmpl');
+  document.getElementById('brandTitle').textContent = CONFIG.brand;
+
+  // 로그인 시도
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = document.getElementById('classCode').value.trim();
+    if (code === CONFIG.classCode) {
+      localStorage.setItem('isAuthed', '1');
+      init();
+    } else {
+      alert('클래스 코드가 올바르지 않습니다.');
+    }
+  });
+}
+
+function showApp() {
+  document.getElementById('logoutBtn').classList.remove('hidden');
+  go(localStorage.getItem('tab') || 'home');
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('isAuthed');
+  init();
+});
+
+// 초기 실행
+function init() {
+  document.title = CONFIG.brand + ' — 수능 영어';
+  document.getElementById('brandTitle').textContent = CONFIG.brand;
+  if (authed()) showApp();
+  else showLogin();
+}
+document.addEventListener('DOMContentLoaded', init);
+
 
 // === 수업 카운트다운 유틸 ===
 const WEEKMAP = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
