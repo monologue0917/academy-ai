@@ -18,7 +18,7 @@
     <button onclick="go('mock')" class="hover:text-indigo-400">모의고사</button>
     <button onclick="go('review')" class="hover:text-indigo-400">오답</button>
   </nav>
-  
+
     <!-- ✅ 여기다가 헤더 넣으시면 돼요 -->
     <header class="sticky top-0 z-30 border-b border-slate-800 bg-[#0b1220]/95 backdrop-blur">
       <div class="px-4 py-3 flex items-center justify-between">
@@ -233,66 +233,70 @@
     { title:'문법 Sprint Day 4', url:'#' },
   ],
   brand: 'ACE ENGLISH',           // ← 추가
-  aiEndpoint: "/api/ai-feedback",
+  aiEndpoint: '/api/ai-feedback',
   classCode: '2749',
 };
 
-// ===== 로그인 / 로그아웃 제어 (깨끗한 버전) =====
-function authed() {
+// ===== 로그인 / 로그아웃 제어 (최종본: 이 블럭만 남기세요) =====
+function authed(){ 
   return localStorage.getItem('isAuthed') === '1';
 }
 
-function showLogin() {
-  // 헤더의 로그아웃 버튼 숨김
+function updateHeaderAuthUI(){
   const lo = document.getElementById('logoutBtn');
-  if (lo) lo.classList.add('hidden');
+  if(!lo) return;
+  if (authed()) lo.classList.remove('hidden');
+  else lo.classList.add('hidden');
+}
 
-  // 로그인 템플릿 렌더
+function showLogin(){
+  // 로그인 화면 렌더
   const t = document.getElementById('loginTmpl');
   document.getElementById('view').innerHTML = t.innerHTML;
 
-  // 브랜드 텍스트
+  // 헤더 상태/브랜드
+  updateHeaderAuthUI();
   const bt = document.getElementById('brandTitle');
   if (bt) bt.textContent = CONFIG.brand || 'ACE ENGLISH';
 
-  // 로그인 처리
+  // 폼 처리
   const form = document.getElementById('loginForm');
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', (e)=>{
     e.preventDefault();
     const code = document.getElementById('classCode').value.trim();
-    if (code === (CONFIG.classCode || '')) {
-      localStorage.setItem('isAuthed', '1');
-      initApp();
+    if (code === (CONFIG.classCode || '')){
+      localStorage.setItem('isAuthed','1');
+      updateHeaderAuthUI();    // 로그인하면 버튼 보이기
+      go('home');              // 홈으로 이동
     } else {
       alert('클래스 코드가 올바르지 않습니다.');
     }
   });
 }
 
-function showApp() {
-  // 로그아웃 버튼 표시
-  const lo = document.getElementById('logoutBtn');
-  if (lo) lo.classList.remove('hidden');
-
-  // 마지막 탭 기억 or 홈
+function showApp(){
+  updateHeaderAuthUI();        // 앱 화면에서는 버튼 보이기
   go(localStorage.getItem('tab') || 'home');
 }
 
-// 로그아웃
-document.getElementById('logoutBtn').addEventListener('click', () => {
+// 로그아웃(헤더 버튼 하나만 처리)
+document.addEventListener('click',(e)=>{
+  const btn = e.target.closest('#logoutBtn');
+  if(!btn) return;
   localStorage.removeItem('isAuthed');
-  initApp();
+  updateHeaderAuthUI();        // 버튼 숨기기
+  showLogin();                 // 로그인 화면으로
 });
 
 // 초기 진입
-function initApp() {
+function initApp(){
   document.title = (CONFIG.brand || 'ACE ENGLISH') + ' — 수능 영어';
   const bt = document.getElementById('brandTitle');
   if (bt) bt.textContent = CONFIG.brand || 'ACE ENGLISH';
-
   if (authed()) showApp();
   else showLogin();
 }
+
 
 // 첫 로드
 document.addEventListener('DOMContentLoaded', initApp);
@@ -379,35 +383,7 @@ function setupClassCountdown(){
   tick();
   setInterval(tick, 1000);
 }
-// ===== 로그인 제어 =====
-function authed(){ return localStorage.getItem('isAuthed')==='1'; }
 
-// 로그인 상태 확인
-function authed(){ return localStorage.getItem('isAuthed')==='1'; }
-
-// 로그인 화면 보여주기
-function showLogin(){
-  const t = document.getElementById('loginTmpl');
-  document.getElementById('view').innerHTML = t.innerHTML;
-
-  const form = document.getElementById('loginForm');
-  form.onsubmit = (e)=>{
-    e.preventDefault();
-    const code = document.getElementById('classCode').value.trim();
-    if(code === (CONFIG.classCode||'')){
-      localStorage.setItem('isAuthed','1');
-      go('home');
-    }else{
-      alert('클래스 코드가 올바르지 않습니다.');
-    }
-  };
-}
-
-// 앱 시작 (로그인 여부에 따라 분기)
-function initApp(){
-  if(authed()) go('home');
-  else showLogin();
-}
 
   function go(tab){
     const t = document.getElementById(tab+'Tmpl');
