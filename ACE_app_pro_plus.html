@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACE ENGLISH · 학원 모바일</title>
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#111827" />
+  <style>
+    :root{color-scheme:light dark}
+    .tab-active{background:#111827;color:#fff}
+    .btn{display:inline-flex;align-items:center;justify-content:center;border-radius:0.75rem;padding:0.6rem 0.9rem;font-weight:600}
+    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);backdrop-filter:saturate(120%) blur(6px);border-radius:1rem;padding:1rem}
+    .kbd{border:1px solid #374151;border-bottom-width:3px;padding:.15rem .4rem;border-radius:.375rem;}
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <header class="sticky top-0 z-40 backdrop-blur bg-slate-900/70 border-b border-white/10">
+    <div class="mx-auto max-w-lg px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl font-black" id="brandTitle">ACE ENGLISH</span>
+        <span class="text-xs text-slate-400 hidden sm:inline">모바일 포털</span>
+      </div>
+      <nav class="flex items-center gap-2">
+        <button id="logoutBtn" class="btn bg-slate-800 hover:bg-slate-700 hidden" aria-label="로그아웃">로그아웃</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-lg px-4 py-4">
+    <!-- 탭 네비게이션 -->
+    <div id="nav" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3 hidden">
+      <button data-tab="home" class="btn bg-slate-800 hover:bg-slate-700" aria-label="홈">홈</button>
+      <button data-tab="announce" class="btn bg-slate-800 hover:bg-slate-700" aria-label="공지">공지</button>
+      <button data-tab="schedule" class="btn bg-slate-800 hover:bg-slate-700" aria-label="시간표">시간표</button>
+      <button data-tab="materials" class="btn bg-slate-800 hover:bg-slate-700" aria-label="자료실">자료실</button>
+      <button data-tab="ai" class="btn bg-slate-800 hover:bg-slate-700" aria-label="AI도우미">AI</button>
+      <button data-tab="mock" class="btn bg-slate-800 hover:bg-slate-700" aria-label="모의고사">모의고사</button>
+      <button data-tab="attend" class="btn bg-slate-800 hover:bg-slate-700" aria-label="출석">출석</button>
+      <button data-tab="review" class="btn bg-slate-800 hover:bg-slate-700" aria-label="오답">오답</button>
+      <button data-tab="dash" class="btn bg-slate-800 hover:bg-slate-700 teacher-only hidden" aria-label="대시보드">대시보드</button>
+    </div>
+
+    <div id="view" class="space-y-3"></div>
+  </main>
+
+  <!-- ========== Templates ========== -->
+  <template id="loginTmpl">
+    <section class="space-y-4">
+      <div class="card">
+        <h1 class="text-2xl font-bold mb-2">로그인</h1>
+        <p class="text-sm text-slate-300">수업 코드 4자리와 이름을 입력하세요.</p>
+        <form id="loginForm" class="mt-4 space-y-3" autocomplete="off">
+          <div>
+            <label class="block text-sm mb-1" for="classCode">수업 코드</label>
+            <input id="classCode" inputmode="numeric" pattern="\d{4}" required maxlength="4"
+                   class="w-full rounded-xl bg-slate-800 px-3 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-indigo-400"
+                   placeholder="예) 2749" />
+            <p id="codeHelp" class="text-xs text-slate-400 mt-1">4자리 숫자만 가능</p>
+          </div>
+          <div>
+            <label class="block text-sm mb-1" for="studentName">이름</label>
+            <input id="studentName" required maxlength="20"
+                   class="w-full rounded-xl bg-slate-800 px-3 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-indigo-400"
+                   placeholder="홍길동 또는 홍길동[T](교사)" />
+          </div>
+          <button class="btn w-full bg-indigo-600 hover:bg-indigo-500">입장하기</button>
+        </form>
+      </div>
+      <div class="text-xs text-slate-400">
+        <p>본 앱은 PWA로 설치 가능하며, 오프라인에서도 공지/자료 일부가 보입니다.</p>
+        <p class="mt-1">설치: 브라우저 메뉴에서 <span class="kbd">앱 설치</span> 선택</p>
+      </div>
+    </section>
+  </template>
+
+  <template id="attendTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">출석 체크</h2>
+        <p class="text-sm text-slate-300">학원 반경 120m 이내에서만 출석으로 인정됩니다.</p>
+        <div class="mt-3 flex gap-2">
+          <button id="attendBtn" class="btn bg-emerald-600 hover:bg-emerald-500">지금 출석</button>
+          <button id="attendRefresh" class="btn bg-slate-700 hover:bg-slate-600">새로고침</button>
+        </div>
+        <div id="attendStatus" class="mt-3 text-sm text-slate-300">버튼을 눌러 출석을 체크하세요.</div>
+      </div>
+      <div class="card">
+        <h3 class="font-bold">출석 이력</h3>
+        <div id="attendHistory" class="mt-2 space-y-2"></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="dashTmpl">
+    <section class="space-y-3">
+      <div class="card bg-gradient-to-br from-slate-800 to-slate-900">
+        <h2 class="text-xl font-bold">교사용 대시보드</h2>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div class="p-3 rounded-xl bg-slate-800">
+            <div class="text-xs text-slate-400">이번 주 출석</div>
+            <div id="dashAttendWeek" class="text-2xl font-black mt-1">-</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-800">
+            <div class="text-xs text-slate-400">최근 모의고사 평균</div>
+            <div id="dashAvgScore" class="text-2xl font-black mt-1">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="font-bold">오답 태그(추정) Top 3</h3>
+        <ul id="dashWeakTags" class="mt-2 space-y-2"></ul>
+      </div>
+    </section>
+  </template>
+
+  <template id="homeTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold">오늘</h2>
+          <div class="text-sm text-slate-300" aria-live="polite" id="nowClock">--:--:--</div>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-slate-800">
+            <div class="text-xs text-slate-400">다음 수업까지</div>
+            <div id="nextClassCountdown" class="text-2xl font-black mt-1" aria-live="polite">--:--:--</div>
+            <div class="text-xs text-slate-300 mt-1" id="nextClassLabel">-</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-800">
+            <div class="text-xs text-slate-400">포모도로</div>
+            <div class="flex items-center gap-2 mt-1">
+              <button id="pomodoroStart" class="btn bg-emerald-600 hover:bg-emerald-500 text-sm">시작</button>
+              <button id="pomodoroStop" class="btn bg-rose-600 hover:bg-rose-500 text-sm">중지</button>
+            </div>
+            <div class="text-lg font-bold mt-2" id="pomodoroClock">25:00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold">빠른 이동</h3>
+        <div class="grid grid-cols-3 gap-2 mt-2">
+          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="announce">공지</button>
+          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="schedule">시간표</button>
+          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="materials">자료실</button>
+          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="ai">AI</button>
+          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="mock">모의고사</button>
+          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="review">오답</button>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <template id="announceTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">공지사항</h2>
+        <ul id="announceList" class="mt-2 space-y-2"></ul>
+      </div>
+    </section>
+  </template>
+
+  <template id="scheduleTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">시간표</h2>
+        <div id="scheduleList" class="mt-2 space-y-2"></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="materialsTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">자료실</h2>
+        <ul id="materialsList" class="mt-2 space-y-2"></ul>
+      </div>
+    </section>
+  </template>
+
+  <template id="aiTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">AI 학습 도우미</h2>
+        <form id="aiForm" class="mt-2 space-y-2">
+          <textarea id="aiQuestion" class="w-full min-h-[120px] rounded-xl bg-slate-800 px-3 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-indigo-400" placeholder="질문을 입력하세요 (작문 교정, 해설, 요약 등)"></textarea>
+          <button class="btn bg-indigo-600 hover:bg-indigo-500 w-full">보내기</button>
+        </form>
+        <div id="aiResult" class="prose prose-invert max-w-none mt-3"></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="mockTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">모의고사</h2>
+        <div class="text-sm text-slate-300">경과시간 <span id="timer" class="font-mono">00:00:00</span></div>
+        <div class="mt-3 flex gap-2">
+          <button id="loadMockBtn" class="btn bg-emerald-600 hover:bg-emerald-500">시험 시작</button>
+          <button id="submitMockBtn" class="btn bg-indigo-600 hover:bg-indigo-500">제출</button>
+        </div>
+        <div id="mockWrap" class="mt-4 space-y-4"></div>
+        <div id="mockResult" class="mt-3 text-sm"></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="reviewTmpl">
+    <section class="space-y-3">
+      <div class="card">
+        <h2 class="text-xl font-bold">오답노트</h2>
+        <div id="reviewList" class="space-y-3 mt-2"></div>
+      </div>
+    </section>
+  </template>
+
+  <!-- ========== App Script ========== -->
+  <script>
+  const CONFIG = {
+    brand: 'ACE ENGLISH',
+    classCode: '2749',
+    aiEndpoint: '/api/ai-feedback',
+    academy: { lat: 35.1234, lng: 129.1234, radiusM: 120 },
+    announcements: [
+      { title: '9월 진도 공지', body: '주 3회 리딩 집중 / 단어 50개.' },
+      { title: '모의고사', body: '매주 토요일 10:00, 지각 X' },
+    ],
+    schedule: [
+      { day: 1, start: '09:00', end: '09:50', name: '문법' },
+      { day: 1, start: '10:00', end: '10:50', name: '리스닝' },
+      { day: 2, start: '09:00', end: '09:50', name: '리딩' },
+      { day: 3, start: '13:00', end: '13:50', name: '스피킹' },
+    ],
+    materials: [
+      { title: '9월 리딩 PDF', url: '#' },
+      { title: 'VOCA 1200 단어장', url: '#' },
+    ]
+  };
+
+  // ---------- Utils ----------
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+  const escapeHTML = (s='') => s.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[m]));
+  const pad2 = n => String(n).padStart(2,'0');
+
+  // ---------- State & Storage ----------
+  const store = {
+    get k(){ return 'ace.v1.' },
+    get(tab){ try{return JSON.parse(localStorage.getItem(this.k+tab))}catch{ return null } },
+    set(tab,v){ localStorage.setItem(this.k+tab, JSON.stringify(v)) },
+    getRaw(k){ return localStorage.getItem(this.k+k) },
+    setRaw(k,v){ localStorage.setItem(this.k+k, v) },
+  };
+
+  function authed(){ return localStorage.getItem('isAuthed')==='1' }
+
+  function showNav(){ $('#nav').classList.remove('hidden') }
+  function hideNav(){ $('#nav').classList.add('hidden') }
+
+  function updateHeaderAuthUI(){ $('#logoutBtn')?.classList.toggle('hidden', !authed()) }
+
+  // router
+  let currentTab = null;
+  let homeTickTimer = null;
+  let mockTimerId = null, mockStartAt = null;
+
+  function go(tab){
+    currentTab = tab;
+    history.replaceState(null, '', `#/${tab}`);
+    localStorage.setItem('ace.v1.tab', tab);
+
+    if(homeTickTimer){ clearInterval(homeTickTimer); homeTickTimer=null }
+
+    const t = document.getElementById(tab+'Tmpl');
+    if(!t){ console.warn('unknown tab', tab); return }
+    $('#view').innerHTML = t.innerHTML;
+
+    $$('#nav [data-tab]').forEach(btn=>{
+      btn.classList.toggle('tab-active', btn.dataset.tab===tab)
+    })
+
+    switch(tab){
+      case 'home': initHome(); break;
+      case 'announce': initAnnounce(); break;
+      case 'schedule': initSchedule(); break;
+      case 'materials': initMaterials(); break;
+      case 'ai': initAI(); break;
+      case 'mock': initMock(); break;
+      case 'review': initReview(); break;
+      case 'attend': initAttend(); break;
+      case 'dash': initDash(); break;
+    }
+  }
+
+  function showLogin(){
+    hideNav();
+    updateHeaderAuthUI();
+    $('#view').innerHTML = $('#loginTmpl').innerHTML;
+    const form = $('#loginForm');
+    form?.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const code = $('#classCode').value.trim();
+      const name = $('#studentName').value.trim();
+      if(!/^\d{4}$/.test(code)){
+        $('#codeHelp').textContent = '4자리 숫자를 다시 확인하세요';
+        return;
+      }
+      if(code !== CONFIG.classCode){
+        alert('수업 코드가 올바르지 않습니다.');
+        return;
+      }
+      localStorage.setItem('isAuthed','1');
+      localStorage.setItem('student.name', name);
+      // 간단 역할 판별: 이름에 [T] 표기가 있으면 교사로 간주
+      const role = name.includes('[T]') || name.includes('(T)') ? 'teacher' : 'student';
+      localStorage.setItem('role', role);
+      showApp();
+    });
+  }
+
+  function showApp(){
+    showNav();
+    updateHeaderAuthUI();
+    // 교사용 탭 표시 제어
+    const role = localStorage.getItem('role')||'student';
+    $$('#nav .teacher-only').forEach(el=>el.classList.toggle('hidden', role!=='teacher'));
+
+    const tab = (location.hash.startsWith('#/') && location.hash.slice(2)) || localStorage.getItem('ace.v1.tab') || 'home';
+    go(tab);
+  }
+
+  // ---------- Geometry / Attendance helpers ----------
+  function haversine(a,b){
+    const R=6371e3, toRad=x=>x*Math.PI/180;
+    const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
+    const s1=Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+    return 2*R*Math.asin(Math.sqrt(s1));
+  }
+  function saveAttendance(rec){
+    const list = store.get('attendance')||[]; list.push(rec); store.set('attendance', list.slice(-200));
+  }
+  function renderAttendance(){
+    const list = (store.get('attendance')||[]).slice().reverse();
+    const box = $('#attendHistory');
+    if(!box) return;
+    if(!list.length){ box.innerHTML = '<div class="text-slate-300">아직 출석 기록이 없습니다.</div>'; return }
+    box.innerHTML = list.map(r=>{
+      const d = new Date(r.at); const hh=`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      const tag = r.type==='present' ? 'present' : r.type;
+      return `<div class='flex items-center justify-between bg-slate-800 rounded-xl px-3 py-2'>
+        <span class='text-sm'>${hh}</span>
+        <span class='text-xs px-2 py-1 rounded ${tag==='present'?'bg-emerald-600':'bg-amber-600'}'>${tag}</span>
+        <span class='text-xs text-slate-300'>${Math.round(r.d)}m</span>
+      </div>`
+    }).join('');
+  }
+  async function markAttendance(){
+    const status = $('#attendStatus');
+    if(!navigator.geolocation){ status.textContent='이 기기는 위치 기능을 지원하지 않습니다.'; return }
+    status.textContent='위치 확인 중…';
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude, longitude} = pos.coords;
+      const A = CONFIG.academy; const d = haversine({lat:latitude,lng:longitude}, {lat:A.lat,lng:A.lng});
+      if(d <= (A.radiusM||120)){
+        saveAttendance({ at: Date.now(), type:'present', d });
+        status.textContent='✅ 출석 체크 완료!';
+      }else{
+        saveAttendance({ at: Date.now(), type:'outside', d });
+        status.textContent='⚠️ 반경 밖으로 판정 (관리자 승인 필요).';
+      }
+      renderAttendance();
+    }, err=>{
+      status.textContent='위치 권한이 거부되었거나 오류가 발생했습니다.';
+    }, { enableHighAccuracy:true, timeout:8000 })
+  }
+
+  // ---------- Home ----------
+  function nextSchedule(now=new Date()){
+    const day = now.getDay(); // 0=Sun
+    const today = CONFIG.schedule.filter(s=>s.day===day);
+    const toDate = (hm)=>{ const [h,m]=hm.split(':').map(Number); const d=new Date(now); d.setHours(h,m,0,0); return d };
+    const upcoming = today.map(s=>({
+      ...s, startAt: toDate(s.start), endAt: toDate(s.end)
+    })).filter(x=>x.endAt>now).sort((a,b)=>a.startAt-b.startAt)[0];
+    return upcoming||null;
+  }
+
+  function initHome(){
+    const clockEl = $('#nowClock');
+    const cdEl = $('#nextClassCountdown');
+    const labelEl = $('#nextClassLabel');
+
+    function tick(){
+      const now = new Date();
+      clockEl.textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+      const up = nextSchedule(now);
+      if(!up){ cdEl.textContent='수업 없음'; labelEl.textContent='오늘 일정이 종료되었습니다'; return }
+      const diff = Math.max(0, up.startAt-now);
+      const h = pad2(Math.floor(diff/3600000));
+      const m = pad2(Math.floor((diff%3600000)/60000));
+      const s = pad2(Math.floor((diff%60000)/1000));
+      cdEl.textContent = `${h}:${m}:${s}`;
+      labelEl.textContent = `${up.name} (${up.start}~${up.end})`
+    }
+    tick();
+    homeTickTimer = setInterval(tick, 1000);
+
+    $$('#view [data-go]').forEach(btn=>btn.addEventListener('click',()=>go(btn.dataset.go)));
+
+    const pEl = $('#pomodoroClock');
+    let pLeft = 25*60, pTimer=null;
+    const renderP = ()=>{ pEl.textContent = `${pad2(Math.floor(pLeft/60))}:${pad2(pLeft%60)}` };
+    renderP();
+    $('#pomodoroStart').addEventListener('click',()=>{
+      if(pTimer) return;
+      pTimer = setInterval(()=>{
+        pLeft--; renderP();
+        if(pLeft<=0){ clearInterval(pTimer); pTimer=null; alert('포모도로 종료! 5분 휴식!'); pLeft=5*60; renderP(); }
+      },1000)
+    })
+    $('#pomodoroStop').addEventListener('click',()=>{ if(pTimer){clearInterval(pTimer); pTimer=null} })
+  }
+
+  // ---------- Attendance Tab ----------
+  function initAttend(){
+    $('#attendBtn').addEventListener('click', markAttendance);
+    $('#attendRefresh').addEventListener('click', renderAttendance);
+    $('#attendStatus').textContent = '버튼을 눌러 출석을 체크하세요.';
+    renderAttendance();
+  }
+
+  // ---------- Announce ----------
+  function initAnnounce(){
+    const ul = $('#announceList');
+    ul.innerHTML = CONFIG.announcements.map(a=>`
+      <li class="p-3 rounded-xl bg-slate-800">
+        <div class="font-semibold">${escapeHTML(a.title)}</div>
+        <div class="text-sm text-slate-300">${escapeHTML(a.body)}</div>
+      </li>
+    `).join('');
+  }
+
+  // ---------- Schedule ----------
+  function initSchedule(){
+    const wrap = $('#scheduleList');
+    const days = ['일','월','화','수','목','금','토'];
+    const grouped = {};
+    for(const s of CONFIG.schedule){ (grouped[s.day]??=[]).push(s) }
+    wrap.innerHTML = Object.entries(grouped).sort((a,b)=>a[0]-b[0]).map(([d,items])=>{
+      const rows = items.map(it=>`
+        <div class="grid grid-cols-[80px_1fr] gap-2 items-center">
+          <div class="font-mono text-sm">${escapeHTML(it.start)}~${escapeHTML(it.end)}</div>
+          <div class="font-semibold">${escapeHTML(it.name)}</div>
+        </div>`).join('');
+      return `<div class="bg-slate-800 rounded-xl p-3"><div class="text-slate-300 text-sm mb-2">${days[d]}</div>${rows}</div>`
+    }).join('');
+  }
+
+  // ---------- Materials ----------
+  function initMaterials(){
+    const ul = $('#materialsList');
+    ul.innerHTML = CONFIG.materials.map(m=>`
+      <li class="p-3 rounded-xl bg-slate-800 flex items-center justify-between">
+        <span>${escapeHTML(m.title)}</span>
+        <a class="text-indigo-400 underline" href="${escapeHTML(m.url)}">열기</a>
+      </li>
+    `).join('');
+  }
+
+  // ---------- AI ----------
+  function initAI(){
+    $('#aiForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const q = $('#aiQuestion').value.trim();
+      if(!q) return;
+      const out = $('#aiResult');
+      out.innerHTML = '<div class="text-sm text-slate-300">분석 중...</div>';
+      try{
+        // Demo: 로컬에서 간단 변환 (실서비스는 fetch(CONFIG.aiEndpoint, ...))
+        const fake = `요청: ${escapeHTML(q)}\n\n초점: 문법·어휘·구조 개선 포인트를 항목화하세요.`;
+        await new Promise(r=>setTimeout(r,700));
+        out.innerHTML = '<pre class="whitespace-pre-wrap">'+fake+'</pre>';
+      }catch(err){ out.innerHTML = '<div class="text-rose-400">오류가 발생했어요.</div>' }
+    })
+  }
+
+  // ---------- Mock Exam ----------
+  function renderMockItem(item, idx){
+    const opts = (item.options||[]).map((op,i)=>`
+      <label class="flex items-center gap-2">
+        <input type="radio" name="q${idx}" value="${i+1}" class="accent-indigo-500" />
+        <span>${escapeHTML(op)}</span>
+      </label>
+    `).join('');
+    const passage = item.passage ? `<div class="text-sm text-slate-300 mb-2">${escapeHTML(item.passage)}</div>` : '';
+    return `<div class="rounded-xl bg-slate-800 p-3">
+      <div class="font-semibold mb-2">Q${idx+1}. ${escapeHTML(item.text||'문항')} ${item.difficulty?`<span class='text-xs text-slate-400 ml-1'>(${item.difficulty})</span>`:''}</div>
+      ${passage}
+      <div class="space-y-1">${opts}</div>
+    </div>`
+  }
+
+  function readMockAnswers(items){
+    return items.map((_,i)=>{
+      const v = document.querySelector(\`input[name="q\${i}"]:checked\`);
+      return v? v.value : '';
+    })
+  }
+
+  function initMock(){
+    $('#loadMockBtn').addEventListener('click', startMock);
+    $('#submitMockBtn').addEventListener('click', submitMock);
+  }
+
+  async function startMock(){
+    // Enhanced exam: sections + explanations + tags
+    const exam = {
+      title: 'DEMO 10문항',
+      sections: [
+        { name:'Reading', items: Array.from({length:5}).map((_,i)=>({
+          text:`리딩 문제 ${i+1}`, options:['A','B','C','D'], answerKey:String((i%4)+1), tags:['inference'], difficulty:'M', explain:'지문 2문장 근거를 통해 추론합니다.'
+        })) },
+        { name:'Listening', items: Array.from({length:5}).map((_,i)=>({
+          text:`리스닝 문제 ${i+1}`, options:['A','B','C','D'], answerKey:String(((i+1)%4)+1), tags:['detail'], difficulty:'E', explain:'세부정보 키워드를 포착하세요.'
+        })) }
+      ]
+    };
+
+    const items = exam.sections.flatMap(s=>s.items);
+    const wrap = $('#mockWrap');
+    wrap.innerHTML = `<div class="text-slate-300">시험: ${escapeHTML(exam.title)} <span class="text-xs">(${exam.sections.map(s=>s.name).join('/')})</span></div>`+
+      items.map((it,idx)=>renderMockItem(it,idx)).join('');
+
+    // start timer
+    mockStartAt = Date.now();
+    const timerEl = $('#timer');
+    if(mockTimerId) clearInterval(mockTimerId);
+    mockTimerId = setInterval(()=>{
+      const s = Math.floor((Date.now()-mockStartAt)/1000);
+      const h = pad2(Math.floor(s/3600));
+      const m = pad2(Math.floor((s%3600)/60));
+      const sec = pad2(s%60);
+      timerEl.textContent = `${h}:${m}:${sec}`;
+    }, 1000);
+
+    store.set('mock.exam', exam);
+  }
+
+  function submitMock(){
+    const exam = store.get('mock.exam');
+    if(!exam){ alert('먼저 시험을 시작하세요.'); return }
+
+    if(mockTimerId){ clearInterval(mockTimerId); mockTimerId=null }
+    const used = $('#timer')?.textContent || '';
+
+    const items = exam.sections.flatMap(s=>s.items);
+    const answers = readMockAnswers(items);
+    let correct=0; const wrong=[]; const tagCounter={};
+    items.forEach((it,idx)=>{
+      const a = answers[idx]||''; const k = it.answerKey;
+      (it.tags||[]).forEach(t=>tagCounter[t]=(tagCounter[t]||0)+ (a===k?0:1));
+      if(a===k) correct++; else wrong.push({
+        index: idx+1,
+        text: it.text,
+        options: it.options,
+        answerKey: k,
+        studentAnswer: a,
+        explain: it.explain,
+        tags: it.tags
+      });
+    })
+
+    const score = Math.round(correct/items.length*100);
+    const topTags = Object.entries(tagCounter).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,c])=>`${t}(${c})`).join(', ');
+    $('#mockResult').innerHTML = `<div class="p-3 bg-slate-800 rounded-xl">점수: <b>${score}</b> / 경과: <span class="font-mono">${used}</span> / 오답: ${wrong.length}문항<br><span class="text-slate-300 text-sm">약점 태그: ${topTags||'-'}</span></div>`+
+      (wrong.length? `<div class="mt-3 space-y-2">${wrong.map(w=>`<div class='bg-slate-800 rounded-xl p-3'><div class='font-semibold'>Q${w.index}</div><div class='text-sm mt-1'>정답 ${escapeHTML(w.answerKey)} · 내 답 ${escapeHTML(w.studentAnswer||'(무응답)')}</div>${w.explain?`<div class='text-xs text-slate-300 mt-1'>해설: ${escapeHTML(w.explain)}</div>`:''}${w.tags?`<div class='text-xs text-slate-400 mt-1'>태그: ${w.tags.map(escapeHTML).join(', ')}</div>`:''}</div>`).join('')}</div>`:'' );
+
+    const prev = store.get('wrongs')||[];
+    store.set('wrongs', prev.concat(wrong));
+
+    const hist = store.get('scores')||[]; hist.push({at:Date.now(), score}); store.set('scores', hist.slice(-20));
+  }
+
+  // ---------- Review (wrongs) ----------
+  function initReview(){
+    const data = store.get('wrongs')||[];
+    const wrap = $('#reviewList');
+    if(!data.length){ wrap.innerHTML = '<div class="text-slate-300">오답이 없습니다.</div>'; return }
+
+    wrap.innerHTML = data.map(w=>`
+      <div class="bg-slate-800 rounded-xl p-3">
+        <div class="font-semibold">Q${w.index}. ${escapeHTML(w.text||'문항')}</div>
+        <div class="text-sm mt-1">정답: <span class="font-mono">${escapeHTML(w.answerKey||'')}</span></div>
+        <div class="text-sm mt-1 text-slate-300">내 답: ${escapeHTML(w.studentAnswer || '(무응답)')}</div>
+        ${w.explain?`<div class='text-xs text-slate-300 mt-1'>해설: ${escapeHTML(w.explain)}</div>`:''}
+        ${w.options? `<div class="mt-2 grid grid-cols-2 gap-2 text-sm">${w.options.map((op,i)=>`<div class="px-2 py-1 rounded bg-slate-700">${i+1}. ${escapeHTML(op)}</div>`).join('')}</div>`:''}
+      </div>
+    `).join('');
+  }
+
+  // ---------- Dashboard ----------
+  function initDash(){
+    const att = store.get('attendance')||[];
+    const now=new Date();
+    const wStart=new Date(now); const day=now.getDay(); const diff=(day+6)%7; wStart.setDate(now.getDate()-diff); wStart.setHours(0,0,0,0);
+    const weekCnt = att.filter(a=>a.type==='present' && a.at>=wStart.getTime()).length;
+    $('#dashAttendWeek').textContent = String(weekCnt);
+
+    const scores = store.get('scores')||[];
+    const avg = scores.length ? Math.round(scores.reduce((s,x)=>s+x.score,0)/scores.length) : '-';
+    $('#dashAvgScore').textContent = String(avg);
+
+    const wrongs = store.get('wrongs')||[]; const t={};
+    wrongs.forEach(w=> (w.tags||[]).forEach(k=> t[k]=(t[k]||0)+1 ));
+    const top = Object.entries(t).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    $('#dashWeakTags').innerHTML = top.length? top.map(([k,c])=>`<li class='flex items-center justify-between bg-slate-800 rounded-xl px-3 py-2'><span>${escapeHTML(k)}</span><span class='text-xs px-2 py-1 rounded bg-rose-600'>${c}</span></li>`).join('') : '<div class="text-slate-300">데이터가 부족합니다.</div>';
+  }
+
+  // ---------- Boot ----------
+  function initApp(){
+    // set brand
+    $('#brandTitle').textContent = CONFIG.brand || 'ACE ENGLISH';
+
+    // nav events
+    $$('#nav [data-tab]').forEach(btn=>btn.addEventListener('click',()=>go(btn.dataset.tab)));
+
+    // logout
+    $('#logoutBtn')?.addEventListener('click', ()=>{ localStorage.removeItem('isAuthed'); showLogin() });
+
+    if(authed()) showApp(); else showLogin();
+
+    // PWA: dynamic manifest + sw
+    setupPWA();
+  }
+
+  // ---------- PWA (single file friendly) ----------
+  function setupPWA(){
+    try{
+      const manifest = {
+        name: 'ACE ENGLISH', short_name: 'ACE', start_url: '.', display: 'standalone',
+        background_color: '#0f172a', theme_color: '#0f172a', icons: []
+      };
+      const manURL = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:'application/json'}));
+      const link = document.createElement('link'); link.rel = 'manifest'; link.href = manURL; document.head.appendChild(link);
+
+      if('serviceWorker' in navigator){
+        const SW_VER='ace-v2';
+        const swCode = `const VER='ace-v2';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(VER).then(c=>c.addAll(['./']))) });
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VER).map(k=>caches.delete(k))))) });
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))) });`;
+        const swURL = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
+        navigator.serviceWorker.register(swURL);
+      }
+    }
+    catch(err){
+      console.warn('PWA setup failed', err)
+    }
+  }
+
+  // single init
+  document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
