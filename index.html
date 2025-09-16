@@ -9,15 +9,15 @@
 <body class="bg-slate-950 text-white p-4 max-w-lg mx-auto space-y-6">
 
   <!-- NAV -->
-  <nav class="flex gap-4 border-b border-slate-800 pb-2">
-    <button onclick="go('home')" class="hover:text-indigo-400">홈</button>
-    <button onclick="go('ann')"  class="hover:text-indigo-400">공지</button>
-    <button onclick="go('sched')" class="hover:text-indigo-400">시간표</button>
-    <button onclick="go('mat')"  class="hover:text-indigo-400">자료실</button>
-    <button onclick="go('ai')" class="hover:text-indigo-400">AI 첨삭</button>
-    <button onclick="go('mock')" class="hover:text-indigo-400">모의고사</button>
-    <button onclick="go('review')" class="hover:text-indigo-400">오답</button>
-  </nav>
+<nav id="mainNav" class="hidden flex gap-4 border-b border-slate-800 pb-2">
+  <button onclick="go('home')"  class="hover:text-indigo-400">홈</button>
+  <button onclick="go('ann')"   class="hover:text-indigo-400">공지</button>
+  <button onclick="go('sched')" class="hover:text-indigo-400">시간표</button>
+  <button onclick="go('mat')"   class="hover:text-indigo-400">자료실</button>
+  <button onclick="go('ai')"    class="hover:text-indigo-400">AI 첨삭</button>
+  <button onclick="go('mock')"  class="hover:text-indigo-400">모의고사</button>
+  <button onclick="go('review')"class="hover:text-indigo-400">오답</button>
+</nav>
 
     <!-- ✅ 여기다가 헤더 넣으시면 돼요 -->
     <header class="sticky top-0 z-30 border-b border-slate-800 bg-[#0b1220]/95 backdrop-blur">
@@ -237,7 +237,7 @@
   classCode: '2749',
 };
 
-// ===== 로그인 / 로그아웃 제어 (최종본: 이 블럭만 남기세요) =====
+// ===== 로그인 / 로그아웃 제어 (최종본) =====
 function authed(){ 
   return localStorage.getItem('isAuthed') === '1';
 }
@@ -250,42 +250,41 @@ function updateHeaderAuthUI(){
 }
 
 function showLogin(){
-  // 로그인 화면 렌더
+  hideNav();
+  document.getElementById('logoutBtn')?.classList.add('hidden');
+
   const t = document.getElementById('loginTmpl');
   document.getElementById('view').innerHTML = t.innerHTML;
 
-  // 헤더 상태/브랜드
-  updateHeaderAuthUI();
   const bt = document.getElementById('brandTitle');
-  if (bt) bt.textContent = CONFIG.brand || 'ACE ENGLISH';
+  if (bt) bt.textContent = (CONFIG.brand || 'ACE ENGLISH');
 
-  // 폼 처리
   const form = document.getElementById('loginForm');
-  form.addEventListener('submit', (e)=>{
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const code = document.getElementById('classCode').value.trim();
-    if (code === (CONFIG.classCode || '')){
+    if(code === (CONFIG.classCode || '')){
       localStorage.setItem('isAuthed','1');
-      updateHeaderAuthUI();    // 로그인하면 버튼 보이기
-      go('home');              // 홈으로 이동
-    } else {
+      showApp();
+    }else{
       alert('클래스 코드가 올바르지 않습니다.');
     }
   });
 }
 
 function showApp(){
-  updateHeaderAuthUI();        // 앱 화면에서는 버튼 보이기
+  showNav();
+  document.getElementById('logoutBtn')?.classList.remove('hidden');
   go(localStorage.getItem('tab') || 'home');
 }
 
-// 로그아웃(헤더 버튼 하나만 처리)
+// 로그아웃
 document.addEventListener('click',(e)=>{
   const btn = e.target.closest('#logoutBtn');
   if(!btn) return;
   localStorage.removeItem('isAuthed');
-  updateHeaderAuthUI();        // 버튼 숨기기
-  showLogin();                 // 로그인 화면으로
+  updateHeaderAuthUI();
+  showLogin();
 });
 
 // 초기 진입
@@ -293,23 +292,13 @@ function initApp(){
   document.title = (CONFIG.brand || 'ACE ENGLISH') + ' — 수능 영어';
   const bt = document.getElementById('brandTitle');
   if (bt) bt.textContent = CONFIG.brand || 'ACE ENGLISH';
+
   if (authed()) showApp();
   else showLogin();
 }
-
 
 // 첫 로드
 document.addEventListener('DOMContentLoaded', initApp);
-
-
-// 초기 실행
-function init() {
-  document.title = CONFIG.brand + ' — 수능 영어';
-  document.getElementById('brandTitle').textContent = CONFIG.brand;
-  if (authed()) showApp();
-  else showLogin();
-}
-document.addEventListener('DOMContentLoaded', init);
 
 
 // === 수업 카운트다운 유틸 ===
@@ -752,6 +741,9 @@ if(tab==='mat'){  // 자료실
         ${Array.isArray(data?.nextSteps)&&data.nextSteps.length? `<p class="mt-1 text-xs text-slate-400">다음 학습: ${data.nextSteps.map(escapeHTML).join(', ')}</p>`:''}
       </div>`;
   }
+
+  function showNav(){ document.getElementById('mainNav')?.classList.remove('hidden'); }
+  function hideNav(){ document.getElementById('mainNav')?.classList.add('hidden'); }
 
   initApp();
   </script> 
