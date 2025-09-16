@@ -1,668 +1,758 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <title>ACE ENGLISH 학원</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ACE ENGLISH · 학원 모바일</title>
-  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <meta name="theme-color" content="#111827" />
-  <style>
-    :root{color-scheme:light dark}
-    .tab-active{background:#111827;color:#fff}
-    .btn{display:inline-flex;align-items:center;justify-content:center;border-radius:0.75rem;padding:0.6rem 0.9rem;font-weight:600}
-    .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);backdrop-filter:saturate(120%) blur(6px);border-radius:1rem;padding:1rem}
-    .kbd{border:1px solid #374151;border-bottom-width:3px;padding:.15rem .4rem;border-radius:.375rem;}
-  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
-  <header class="sticky top-0 z-40 backdrop-blur bg-slate-900/70 border-b border-white/10">
-    <div class="mx-auto max-w-lg px-4 h-14 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-xl font-black" id="brandTitle">ACE ENGLISH</span>
-        <span class="text-xs text-slate-400 hidden sm:inline">모바일 포털</span>
+<body class="bg-slate-950 text-white p-4 max-w-lg mx-auto space-y-6">
+
+  <!-- NAV -->
+<nav id="mainNav" class="hidden flex gap-4 border-b border-slate-800 pb-2">
+  <button onclick="go('home')"  class="hover:text-indigo-400">홈</button>
+  <button onclick="go('ann')"   class="hover:text-indigo-400">공지</button>
+  <button onclick="go('sched')" class="hover:text-indigo-400">시간표</button>
+  <button onclick="go('mat')"   class="hover:text-indigo-400">자료실</button>
+  <button onclick="go('ai')"    class="hover:text-indigo-400">AI 첨삭</button>
+  <button onclick="go('mock')"  class="hover:text-indigo-400">모의고사</button>
+  <button onclick="go('review')"class="hover:text-indigo-400">오답</button>
+</nav>
+
+    <!-- ✅ 여기다가 헤더 넣으시면 돼요 -->
+    <header class="sticky top-0 z-30 border-b border-slate-800 bg-[#0b1220]/95 backdrop-blur">
+      <div class="px-4 py-3 flex items-center justify-between">
+        <h1 id="brandTitle" class="text-[15px] font-semibold">ACE ENGLISH</h1>
+        <button id="logoutBtn"
+          class="hidden text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-700 hover:bg-slate-800">
+          로그아웃
+        </button>
       </div>
-      <nav class="flex items-center gap-2">
-        <button id="logoutBtn" class="btn bg-slate-800 hover:bg-slate-700 hidden" aria-label="로그아웃">로그아웃</button>
-      </nav>
+    </header>
+
+
+
+  <!-- VIEW -->
+  <main id="view"></main>
+  <!-- LOGIN -->
+<template id="loginTmpl">
+  <section class="mt-6 space-y-5">
+    <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-500 p-4 shadow-lg">
+      <p class="text-xs opacity-90">수능 영어 전문 — 즉시 채점 & 해설</p>
+      <h2 class="text-xl font-bold tracking-tight">ACE ENGLISH</h2>
     </div>
-  </header>
+    <div class="card">
+      <h3 class="font-semibold">학생 전용 입장</h3>
+      <form id="loginForm" class="mt-3 space-y-3">
+        <input id="classCode" placeholder="Class Code (예: 2749)" inputmode="numeric"
+               class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"/>
+        <button class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-3 font-medium">입장하기</button>
+        <p class="text-[11px] text-slate-400">홈 화면에 추가(PWA) 가능</p>
+      </form>
+    </div>
+  </section>
+</template>
 
-  <main class="mx-auto max-w-lg px-4 py-4">
-    <!-- 탭 네비게이션 -->
-    <div id="nav" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3 hidden">
-      <button data-tab="home" class="btn bg-slate-800 hover:bg-slate-700" aria-label="홈">홈</button>
-      <button data-tab="announce" class="btn bg-slate-800 hover:bg-slate-700" aria-label="공지">공지</button>
-      <button data-tab="schedule" class="btn bg-slate-800 hover:bg-slate-700" aria-label="시간표">시간표</button>
-      <button data-tab="materials" class="btn bg-slate-800 hover:bg-slate-700" aria-label="자료실">자료실</button>
-      <button data-tab="ai" class="btn bg-slate-800 hover:bg-slate-700" aria-label="AI도우미">AI</button>
-      <button data-tab="mock" class="btn bg-slate-800 hover:bg-slate-700" aria-label="모의고사">모의고사</button>
-      <button data-tab="attend" class="btn bg-slate-800 hover:bg-slate-700" aria-label="출석">출석</button>
-      <button data-tab="review" class="btn bg-slate-800 hover:bg-slate-700" aria-label="오답">오답</button>
-      <button data-tab="dash" class="btn bg-slate-800 hover:bg-slate-700 teacher-only hidden" aria-label="대시보드">대시보드</button>
+  <!-- HOME -->
+<template id="homeTmpl">
+  <section class="space-y-4">
+
+    <!-- 오늘 날짜/시간 + 다음 수업 카운트다운 -->
+    <div class="card overflow-hidden p-0">
+      <div class="bg-gradient-to-r from-indigo-600/30 via-purple-600/20 to-sky-500/20 p-4">
+        <p class="text-xs text-slate-300">오늘</p>
+        <div class="flex items-end justify-between gap-4">
+          <div>
+            <h2 id="clockDate" class="text-lg font-bold tracking-tight">—</h2>
+            <p id="clockNow" class="text-4xl font-extrabold leading-none mt-1 select-none tabular-nums">--:--:--</p>
+          </div>
+          <div class="text-right">
+            <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-900/60 border border-slate-700/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live
+            </span>
+            <p class="text-xs text-slate-300 mt-2">다음 수업</p>
+            <p id="nextClassLine" class="font-semibold">—</p>
+            <p id="classCountdown" class="text-sm text-slate-300 tabular-nums">--:--:--</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 grid grid-cols-3 gap-2">
+        <button onclick="go('mock')" class="w-full text-sm py-2 rounded-lg bg-slate-900/80 border border-slate-700/60 hover:bg-slate-800">모의고사</button>
+        <button onclick="go('ai')" class="w-full text-sm py-2 rounded-lg bg-slate-900/80 border border-slate-700/60 hover:bg-slate-800">AI 첨삭</button>
+        <button onclick="go('review')" class="w-full text-sm py-2 rounded-lg bg-slate-900/80 border border-slate-700/60 hover:bg-slate-800">오답</button>
+      </div>
     </div>
 
-    <div id="view" class="space-y-3"></div>
-  </main>
+    <!-- 출석 스트릭 -->
+    <div class="card">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold">출석 스트릭</h3>
+        <button id="attendTodayBtn" class="text-xs px-3 py-1 rounded-full bg-emerald-700/30 border border-emerald-600/50 hover:bg-emerald-700/40">
+          오늘 출석
+        </button>
+      </div>
+      <p id="streakText" class="text-sm text-slate-300 mt-2">연속 0일</p>
+      <p id="lastAttend" class="text-xs text-slate-400 mt-1">마지막 체크: -</p>
+    </div>
 
-  <!-- ========== Templates ========== -->
-  <template id="loginTmpl">
+    <!-- 숙제 체크리스트 -->
+    <div class="card">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="font-semibold">오늘 숙제</h3>
+        <div class="flex gap-2">
+          <input id="hwInput" class="rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm" placeholder="할 일 추가" />
+          <button id="hwAddBtn" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500">추가</button>
+        </div>
+      </div>
+      <ul id="hwList" class="mt-3 space-y-2"></ul>
+    </div>
+
+    <!-- 공부 타이머 -->
+    <div class="card">
+      <h3 class="font-semibold">공부 타이머</h3>
+      <p id="pomodoroLabel" class="text-sm text-slate-300 mt-1">작업 25:00</p>
+      <div class="mt-2 flex items-center gap-2">
+        <button id="pomodoroStart" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm">시작</button>
+        <button id="pomodoroStop"  class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm">일시정지</button>
+        <button id="pomodoroReset" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm">리셋</button>
+      </div>
+    </div>
+
+    <!-- 최근 AI 피드백 -->
+    <div class="card">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold">최근 AI 피드백</h3>
+        <button id="aiHistoryClear" class="text-xs text-slate-300 hover:text-white">전체 지우기</button>
+      </div>
+      <ul id="aiHistory" class="mt-2 space-y-2"></ul>
+    </div>
+
+  </section>
+</template>
+
+  <!-- AI -->
+  <template id="aiTmpl">
+    <section>
+      <h2 class="text-lg font-bold mb-2">AI 첨삭</h2>
+      <form id="aiForm" class="space-y-2">
+        <textarea id="aiInput" class="w-full h-32 rounded-lg bg-slate-900 border border-slate-700 p-2 text-sm" placeholder="문제/답안을 입력하세요"></textarea>
+        <button class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500">제출</button>
+      </form>
+      <div id="aiResult" class="mt-4 space-y-2"></div>
+    </section>
+  </template>
+
+  <!-- MOCK -->
+  <template id="mockTmpl">
+    <section>
+      <h2 class="text-lg font-bold mb-2">모의고사</h2>
+
+      <!-- ✅ 새 파일 옵션 추가 -->
+      <select id="mockSelect" class="rounded bg-slate-900 border border-slate-700 px-2 py-1 text-sm">
+        <option value="/data/mock-01.json">ACE 모의고사 01</option>
+        <option value="/data/mock-02.json">ACE 모의고사 02</option>
+        <option value="/data/mock-2025-09-k1_part1_1-20_with_key.json">2025년 9월 고1 모의고사 (1~20번)</option>
+      </select>
+      <button onclick="startMock()" class="ml-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500">모의고사 시작</button>
+
+      <div id="mockArea" class="mt-4 space-y-4"></div>
+      <div id="timer" class="mt-2 text-slate-300"></div>
+
+      <button onclick="submitMock()" class="mt-4 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500">제출하기</button>
+    </section>
+  </template>
+
+  <!-- REVIEW -->
+  <template id="reviewTmpl">
     <section class="space-y-4">
       <div class="card">
-        <h1 class="text-2xl font-bold mb-2">로그인</h1>
-        <p class="text-sm text-slate-300">수업 코드 4자리와 이름을 입력하세요.</p>
-        <form id="loginForm" class="mt-4 space-y-3" autocomplete="off">
-          <div>
-            <label class="block text-sm mb-1" for="classCode">수업 코드</label>
-            <input id="classCode" inputmode="numeric" pattern="\d{4}" required maxlength="4"
-                   class="w-full rounded-xl bg-slate-800 px-3 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-indigo-400"
-                   placeholder="예) 2749" />
-            <p id="codeHelp" class="text-xs text-slate-400 mt-1">4자리 숫자만 가능</p>
-          </div>
-          <div>
-            <label class="block text-sm mb-1" for="studentName">이름</label>
-            <input id="studentName" required maxlength="20"
-                   class="w-full rounded-xl bg-slate-800 px-3 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-indigo-400"
-                   placeholder="홍길동 또는 홍길동[T](교사)" />
-          </div>
-          <button class="btn w-full bg-indigo-600 hover:bg-indigo-500">입장하기</button>
-        </form>
-      </div>
-      <div class="text-xs text-slate-400">
-        <p>본 앱은 PWA로 설치 가능하며, 오프라인에서도 공지/자료 일부가 보입니다.</p>
-        <p class="mt-1">설치: 브라우저 메뉴에서 <span class="kbd">앱 설치</span> 선택</p>
-      </div>
-    </section>
-  </template>
-
-  <template id="attendTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">출석 체크</h2>
-        <p class="text-sm text-slate-300">학원 반경 120m 이내에서만 출석으로 인정됩니다.</p>
-        <div class="mt-3 flex gap-2">
-          <button id="attendBtn" class="btn bg-emerald-600 hover:bg-emerald-500">지금 출석</button>
-          <button id="attendRefresh" class="btn bg-slate-700 hover:bg-slate-600">새로고침</button>
-        </div>
-        <div id="attendStatus" class="mt-3 text-sm text-slate-300">버튼을 눌러 출석을 체크하세요.</div>
-      </div>
-      <div class="card">
-        <h3 class="font-bold">출석 이력</h3>
-        <div id="attendHistory" class="mt-2 space-y-2"></div>
-      </div>
-    </section>
-  </template>
-
-  <template id="dashTmpl">
-    <section class="space-y-3">
-      <div class="card bg-gradient-to-br from-slate-800 to-slate-900">
-        <h2 class="text-xl font-bold">교사용 대시보드</h2>
-        <div class="grid grid-cols-2 gap-3 mt-3">
-          <div class="p-3 rounded-xl bg-slate-800">
-            <div class="text-xs text-slate-400">이번 주 출석</div>
-            <div id="dashAttendWeek" class="text-2xl font-black mt-1">-</div>
-          </div>
-          <div class="p-3 rounded-xl bg-slate-800">
-            <div class="text-xs text-slate-400">최근 모의고사 평균</div>
-            <div id="dashAvgScore" class="text-2xl font-black mt-1">-</div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <h3 class="font-bold">오답 태그(추정) Top 3</h3>
-        <ul id="dashWeakTags" class="mt-2 space-y-2"></ul>
-      </div>
-    </section>
-  </template>
-
-  <template id="homeTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-bold">오늘</h2>
-          <div class="text-sm text-slate-300" aria-live="polite" id="nowClock">--:--:--</div>
-        </div>
-        <div class="mt-3 grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-slate-800">
-            <div class="text-xs text-slate-400">다음 수업까지</div>
-            <div id="nextClassCountdown" class="text-2xl font-black mt-1" aria-live="polite">--:--:--</div>
-            <div class="text-xs text-slate-300 mt-1" id="nextClassLabel">-</div>
-          </div>
-          <div class="p-3 rounded-xl bg-slate-800">
-            <div class="text-xs text-slate-400">포모도로</div>
-            <div class="flex items-center gap-2 mt-1">
-              <button id="pomodoroStart" class="btn bg-emerald-600 hover:bg-emerald-500 text-sm">시작</button>
-              <button id="pomodoroStop" class="btn bg-rose-600 hover:bg-rose-500 text-sm">중지</button>
-            </div>
-            <div class="text-lg font-bold mt-2" id="pomodoroClock">25:00</div>
-          </div>
+        <h3 class="font-semibold mb-2">오답 모아보기</h3>
+        <div class="flex flex-wrap gap-2">
+          <button class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-sm filter-btn" data-src="all">전체</button>
+          <button class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-sm filter-btn" data-src="mock">모의고사</button>
+          <button class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-sm filter-btn" data-src="quiz">스피드퀴즈</button>
+          <button class="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-sm filter-btn" data-src="homework">숙제</button>
         </div>
       </div>
 
+      <div id="wrongList" class="space-y-3"></div>
+
       <div class="card">
-        <h3 class="font-bold">빠른 이동</h3>
-        <div class="grid grid-cols-3 gap-2 mt-2">
-          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="announce">공지</button>
-          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="schedule">시간표</button>
-          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="materials">자료실</button>
-          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="ai">AI</button>
-          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="mock">모의고사</button>
-          <button class="btn bg-slate-800 hover:bg-slate-700" data-go="review">오답</button>
-        </div>
+        <button id="aiFeedbackSelected" class="w-full px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500">
+          선택한 오답 AI 피드백
+        </button>
       </div>
+
+      <div id="reviewResult" class="hidden space-y-3"></div>
     </section>
   </template>
 
-  <template id="announceTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">공지사항</h2>
-        <ul id="announceList" class="mt-2 space-y-2"></ul>
-      </div>
-    </section>
-  </template>
+  <!-- 공지 -->
+<template id="annTmpl">
+  <section id="annList" class="space-y-3"></section>
+</template>
 
-  <template id="scheduleTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">시간표</h2>
-        <div id="scheduleList" class="mt-2 space-y-2"></div>
-      </div>
-    </section>
-  </template>
+<!-- 시간표 -->
+<template id="schedTmpl">
+  <section class="space-y-3">
+    <div class="card">
+      <h3 class="font-semibold">주간 시간표</h3>
+      <ul id="schedList" class="mt-2 divide-y divide-slate-800"></ul>
+    </div>
+  </section>
+</template>
 
-  <template id="materialsTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">자료실</h2>
-        <ul id="materialsList" class="mt-2 space-y-2"></ul>
-      </div>
-    </section>
-  </template>
+<!-- 자료실 -->
+<template id="matTmpl">
+  <section class="space-y-3">
+    <div class="card">
+      <h3 class="font-semibold">자료실</h3>
+      <ul id="matList" class="mt-2 space-y-2"></ul>
+    </div>
+  </section>
+</template>
 
-  <template id="aiTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">AI 학습 도우미</h2>
-        <form id="aiForm" class="mt-2 space-y-2">
-          <textarea id="aiQuestion" class="w-full min-h-[120px] rounded-xl bg-slate-800 px-3 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-indigo-400" placeholder="질문을 입력하세요 (작문 교정, 해설, 요약 등)"></textarea>
-          <button class="btn bg-indigo-600 hover:bg-indigo-500 w-full">보내기</button>
-        </form>
-        <div id="aiResult" class="prose prose-invert max-w-none mt-3"></div>
-      </div>
-    </section>
-  </template>
 
-  <template id="mockTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">모의고사</h2>
-        <div class="text-sm text-slate-300">경과시간 <span id="timer" class="font-mono">00:00:00</span></div>
-        <div class="mt-3 flex gap-2">
-          <button id="loadMockBtn" class="btn bg-emerald-600 hover:bg-emerald-500">시험 시작</button>
-          <button id="submitMockBtn" class="btn bg-indigo-600 hover:bg-indigo-500">제출</button>
-        </div>
-        <div id="mockWrap" class="mt-4 space-y-4"></div>
-        <div id="mockResult" class="mt-3 text-sm"></div>
-      </div>
-    </section>
-  </template>
-
-  <template id="reviewTmpl">
-    <section class="space-y-3">
-      <div class="card">
-        <h2 class="text-xl font-bold">오답노트</h2>
-        <div id="reviewList" class="space-y-3 mt-2"></div>
-      </div>
-    </section>
-  </template>
-
-  <!-- ========== App Script ========== -->
+  <!-- SCRIPT -->
   <script>
-  const CONFIG = {
-    brand: 'ACE ENGLISH',
-    classCode: '2749',
-    aiEndpoint: '/api/ai-feedback',
-    academy: { lat: 35.1234, lng: 129.1234, radiusM: 120 },
-    announcements: [
-      { title: '9월 진도 공지', body: '주 3회 리딩 집중 / 단어 50개.' },
-      { title: '모의고사', body: '매주 토요일 10:00, 지각 X' },
-    ],
-    schedule: [
-      { day: 1, start: '09:00', end: '09:50', name: '문법' },
-      { day: 1, start: '10:00', end: '10:50', name: '리스닝' },
-      { day: 2, start: '09:00', end: '09:50', name: '리딩' },
-      { day: 3, start: '13:00', end: '13:50', name: '스피킹' },
-    ],
-    materials: [
-      { title: '9월 리딩 PDF', url: '#' },
-      { title: 'VOCA 1200 단어장', url: '#' },
-    ]
-  };
+ const CONFIG = {
+  aiEndpoint: "/api/ai-feedback",
+  announcements: [
+    { title:'9월 모평 해설 업로드', body:'자료실에서 21~30번 집중 해설 확인' },
+    { title:'주간 테스트',        body:'수요일 19:00 단어·문법 스피드 퀴즈' },
+  ],
+  schedule: [
+    { day:'월', time:'19:00–21:00', room:'B-203', note:'Reading' },
+    { day:'수', time:'19:00–21:00', room:'B-203', note:'Grammar' },
+    { day:'금', time:'19:00–21:30', room:'B-203', note:'모의고사' },
+  ],
+  materials: [
+    { title:'9월 모평 해설 PDF', url:'#' },
+    { title:'EBS 변형 세트 03', url:'#' },
+    { title:'문법 Sprint Day 4', url:'#' },
+  ],
+  brand: 'ACE ENGLISH',           // ← 추가
+  aiEndpoint: '/api/ai-feedback',
+  classCode: '2749',
+};
 
-  // ---------- Utils ----------
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
-  const escapeHTML = (s='') => s.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[m]));
-  const pad2 = n => String(n).padStart(2,'0');
+// ===== 로그인 / 로그아웃 제어 (최종본) =====
+function authed(){ 
+  return localStorage.getItem('isAuthed') === '1';
+}
 
-  // ---------- State & Storage ----------
-  const store = {
-    get k(){ return 'ace.v1.' },
-    get(tab){ try{return JSON.parse(localStorage.getItem(this.k+tab))}catch{ return null } },
-    set(tab,v){ localStorage.setItem(this.k+tab, JSON.stringify(v)) },
-    getRaw(k){ return localStorage.getItem(this.k+k) },
-    setRaw(k,v){ localStorage.setItem(this.k+k, v) },
-  };
+function updateHeaderAuthUI(){
+  const lo = document.getElementById('logoutBtn');
+  if(!lo) return;
+  if (authed()) lo.classList.remove('hidden');
+  else lo.classList.add('hidden');
+}
 
-  function authed(){ return localStorage.getItem('isAuthed')==='1' }
+function showLogin(){
+  hideNav();
+  document.getElementById('logoutBtn')?.classList.add('hidden');
 
-  function showNav(){ $('#nav').classList.remove('hidden') }
-  function hideNav(){ $('#nav').classList.add('hidden') }
+  const t = document.getElementById('loginTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
 
-  function updateHeaderAuthUI(){ $('#logoutBtn')?.classList.toggle('hidden', !authed()) }
+  const bt = document.getElementById('brandTitle');
+  if (bt) bt.textContent = (CONFIG.brand || 'ACE ENGLISH');
 
-  // router
-  let currentTab = null;
-  let homeTickTimer = null;
-  let mockTimerId = null, mockStartAt = null;
+  const form = document.getElementById('loginForm');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = document.getElementById('classCode').value.trim();
+    if(code === (CONFIG.classCode || '')){
+      localStorage.setItem('isAuthed','1');
+      showApp();
+    }else{
+      alert('클래스 코드가 올바르지 않습니다.');
+    }
+  });
+}
 
-  function go(tab){
-    currentTab = tab;
-    history.replaceState(null, '', `#/${tab}`);
-    localStorage.setItem('ace.v1.tab', tab);
+function showApp(){
+  showNav();
+  document.getElementById('logoutBtn')?.classList.remove('hidden');
+  go(localStorage.getItem('tab') || 'home');
+}
 
-    if(homeTickTimer){ clearInterval(homeTickTimer); homeTickTimer=null }
+// 로그아웃
+document.addEventListener('click',(e)=>{
+  const btn = e.target.closest('#logoutBtn');
+  if(!btn) return;
+  localStorage.removeItem('isAuthed');
+  updateHeaderAuthUI();
+  showLogin();
+});
 
-    const t = document.getElementById(tab+'Tmpl');
-    if(!t){ console.warn('unknown tab', tab); return }
-    $('#view').innerHTML = t.innerHTML;
+// 초기 진입
+function initApp(){
+  document.title = (CONFIG.brand || 'ACE ENGLISH') + ' — 수능 영어';
+  const bt = document.getElementById('brandTitle');
+  if (bt) bt.textContent = CONFIG.brand || 'ACE ENGLISH';
 
-    $$('#nav [data-tab]').forEach(btn=>{
-      btn.classList.toggle('tab-active', btn.dataset.tab===tab)
-    })
+  if (authed()) showApp();
+  else showLogin();
+}
 
-    switch(tab){
-      case 'home': initHome(); break;
-      case 'announce': initAnnounce(); break;
-      case 'schedule': initSchedule(); break;
-      case 'materials': initMaterials(); break;
-      case 'ai': initAI(); break;
-      case 'mock': initMock(); break;
-      case 'review': initReview(); break;
-      case 'attend': initAttend(); break;
-      case 'dash': initDash(); break;
+// 첫 로드
+document.addEventListener('DOMContentLoaded', initApp);
+
+
+// === 수업 카운트다운 유틸 ===
+const WEEKMAP = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
+
+function parseTimeRange(range){
+  const [startStr,endStr] = range.split(/[–-]/);
+  const [sh,sm] = startStr.trim().split(':').map(n=>parseInt(n,10));
+  const [eh,em] = endStr.trim().split(':').map(n=>parseInt(n,10));
+  return { start:{h:sh,m:sm}, end:{h:eh,m:em} };
+}
+
+function getNextClassFromSchedule(schedule){
+  const now = new Date();
+  let best = null;
+
+  for(const it of schedule){
+    const w = WEEKMAP[it.day];
+    const {start,end} = parseTimeRange(it.time);
+    const d = new Date(now);
+    const diffToW = (w - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + diffToW);
+    d.setHours(start.h, start.m, 0, 0);
+
+    if (d <= now) d.setDate(d.getDate() + 7);
+
+    if (!best || d < best.start) {
+      const endDt = new Date(d);
+      endDt.setHours(end.h, end.m, 0, 0);
+      best = { day: it.day, time: it.time, room: it.room, start: d, end: endDt };
     }
   }
+  return best;
+}
 
-  function showLogin(){
-    hideNav();
-    updateHeaderAuthUI();
-    $('#view').innerHTML = $('#loginTmpl').innerHTML;
-    const form = $('#loginForm');
-    form?.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const code = $('#classCode').value.trim();
-      const name = $('#studentName').value.trim();
-      if(!/^\d{4}$/.test(code)){
-        $('#codeHelp').textContent = '4자리 숫자를 다시 확인하세요';
-        return;
+function setupClassCountdown(){
+  const line = document.getElementById('nextClassLine');
+  const box  = document.getElementById('classCountdown');
+
+  function fmt2(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const nxt = getNextClassFromSchedule(CONFIG.schedule);
+    if(!nxt){ line.textContent='일정 없음'; box.textContent='--:--:--'; return; }
+
+    line.textContent = `${nxt.day} ${nxt.time} ${nxt.room}`;
+
+    const now = new Date();
+    let diff = nxt.start - now;
+
+    if (diff <= 0) {
+      if (now < nxt.end){
+        box.textContent = '수업 진행중';
+      } else {
+        box.textContent = '곧 다음 일정 계산중…';
       }
-      if(code !== CONFIG.classCode){
-        alert('수업 코드가 올바르지 않습니다.');
-        return;
-      }
-      localStorage.setItem('isAuthed','1');
-      localStorage.setItem('student.name', name);
-      // 간단 역할 판별: 이름에 [T] 표기가 있으면 교사로 간주
-      const role = name.includes('[T]') || name.includes('(T)') ? 'teacher' : 'student';
-      localStorage.setItem('role', role);
-      showApp();
-    });
+      return;
+    }
+
+    const sec   = Math.floor(diff/1000);
+    const days  = Math.floor(sec/86400);
+    const hrs   = Math.floor((sec%86400)/3600);
+    const mins  = Math.floor((sec%3600)/60);
+    const secs  = sec%60;
+
+    box.textContent = (days>0)
+      ? `${days}일 ${fmt2(hrs)}:${fmt2(mins)}:${fmt2(secs)}`
+      : `${fmt2(hrs)}:${fmt2(mins)}:${fmt2(secs)}`;
   }
 
-  function showApp(){
-    showNav();
-    updateHeaderAuthUI();
-    // 교사용 탭 표시 제어
-    const role = localStorage.getItem('role')||'student';
-    $$('#nav .teacher-only').forEach(el=>el.classList.toggle('hidden', role!=='teacher'));
+  tick();
+  setInterval(tick, 1000);
+}
 
-    const tab = (location.hash.startsWith('#/') && location.hash.slice(2)) || localStorage.getItem('ace.v1.tab') || 'home';
-    go(tab);
-  }
 
-  // ---------- Geometry / Attendance helpers ----------
-  function haversine(a,b){
-    const R=6371e3, toRad=x=>x*Math.PI/180;
-    const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
-    const s1=Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
-    return 2*R*Math.asin(Math.sqrt(s1));
-  }
-  function saveAttendance(rec){
-    const list = store.get('attendance')||[]; list.push(rec); store.set('attendance', list.slice(-200));
-  }
-  function renderAttendance(){
-    const list = (store.get('attendance')||[]).slice().reverse();
-    const box = $('#attendHistory');
-    if(!box) return;
-    if(!list.length){ box.innerHTML = '<div class="text-slate-300">아직 출석 기록이 없습니다.</div>'; return }
-    box.innerHTML = list.map(r=>{
-      const d = new Date(r.at); const hh=`${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-      const tag = r.type==='present' ? 'present' : r.type;
-      return `<div class='flex items-center justify-between bg-slate-800 rounded-xl px-3 py-2'>
-        <span class='text-sm'>${hh}</span>
-        <span class='text-xs px-2 py-1 rounded ${tag==='present'?'bg-emerald-600':'bg-amber-600'}'>${tag}</span>
-        <span class='text-xs text-slate-300'>${Math.round(r.d)}m</span>
-      </div>`
-    }).join('');
-  }
-  async function markAttendance(){
-    const status = $('#attendStatus');
-    if(!navigator.geolocation){ status.textContent='이 기기는 위치 기능을 지원하지 않습니다.'; return }
-    status.textContent='위치 확인 중…';
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const {latitude, longitude} = pos.coords;
-      const A = CONFIG.academy; const d = haversine({lat:latitude,lng:longitude}, {lat:A.lat,lng:A.lng});
-      if(d <= (A.radiusM||120)){
-        saveAttendance({ at: Date.now(), type:'present', d });
-        status.textContent='✅ 출석 체크 완료!';
-      }else{
-        saveAttendance({ at: Date.now(), type:'outside', d });
-        status.textContent='⚠️ 반경 밖으로 판정 (관리자 승인 필요).';
-      }
-      renderAttendance();
-    }, err=>{
-      status.textContent='위치 권한이 거부되었거나 오류가 발생했습니다.';
-    }, { enableHighAccuracy:true, timeout:8000 })
+  function go(tab){
+    const t = document.getElementById(tab+'Tmpl');
+    document.getElementById('view').innerHTML = t.innerHTML;
+    if(tab==='home') initHome();
+    if(tab==='ai') initAI();
+    if(tab==='review') renderReviewTab('all');
+    if(tab==='ann'){  // 공지
+  const t = document.getElementById('annTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+  const list = document.getElementById('annList');
+  list.innerHTML = (CONFIG.announcements||[]).map(a=>`
+    <article class="card">
+      <h4 class="font-semibold">${a.title}</h4>
+      <p class="text-sm text-slate-300 mt-1">${a.body}</p>
+    </article>
+  `).join('');
+}
+
+if(tab==='sched'){ // 시간표
+  const t = document.getElementById('schedTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+  const ul = document.getElementById('schedList');
+  ul.innerHTML = (CONFIG.schedule||[]).map(s=>`
+    <li class="flex items-center justify-between py-3">
+      <div>
+        <p class="font-medium">${s.day} • ${s.time}</p>
+        <p class="text-sm text-slate-400">${s.room}${s.note?` · ${s.note}`:''}</p>
+      </div>
+    </li>
+  `).join('');
+}
+
+if(tab==='mat'){  // 자료실
+  const t = document.getElementById('matTmpl');
+  document.getElementById('view').innerHTML = t.innerHTML;
+  const ul = document.getElementById('matList');
+  ul.innerHTML = (CONFIG.materials||[]).map(m=>`
+    <li>
+      <a class="block rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm hover:bg-slate-800"
+         href="${m.url}" target="_blank">${m.title}</a>
+    </li>
+  `).join('');
+}
+
+    
   }
 
-  // ---------- Home ----------
-  function nextSchedule(now=new Date()){
-    const day = now.getDay(); // 0=Sun
-    const today = CONFIG.schedule.filter(s=>s.day===day);
-    const toDate = (hm)=>{ const [h,m]=hm.split(':').map(Number); const d=new Date(now); d.setHours(h,m,0,0); return d };
-    const upcoming = today.map(s=>({
-      ...s, startAt: toDate(s.start), endAt: toDate(s.end)
-    })).filter(x=>x.endAt>now).sort((a,b)=>a.startAt-b.startAt)[0];
-    return upcoming||null;
-  }
-
+  /* ===== HOME ===== */
   function initHome(){
-    const clockEl = $('#nowClock');
-    const cdEl = $('#nextClassCountdown');
-    const labelEl = $('#nextClassLabel');
+    const dateEl = document.getElementById('clockDate');
+    const timeEl = document.getElementById('clockNow');
+    const nextLine = document.getElementById('nextClassLine');
+    const cdEl = document.getElementById('classCountdown');
+
+    const yoilTxt = ['일','월','화','수','목','금','토'];
+
+    // 다음 수업 계산기 (CONFIG.schedule 사용)
+    const yoilToIdx = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
+    function computeNextClass(now=new Date()){
+      // CONFIG.schedule: [{day:'월', time:'19:00–21:00', room:'B-203'}, ...]
+      const cand = [];
+      for(const s of CONFIG.schedule){
+        const [start] = (s.time||'').split(/[–~-]/); // 시작시각
+        const [hh,mm] = (start||'00:00').split(':').map(x=>parseInt(x,10)||0);
+        for(let w=0; w<7; w++){
+          const d = new Date(now);
+          const want = yoilToIdx[s.day] ?? 0;
+          const add = ( (want - now.getDay() + 7) % 7 ) + (w? w*7 : 0);
+          d.setDate(d.getDate() + add);
+          d.setHours(hh, mm, 0, 0);
+          if(d >= now) cand.push({ when:d, meta:s });
+          if(cand.length>0) break;
+        }
+      }
+      cand.sort((a,b)=>a.when-b.when);
+      return cand[0] || null;
+    }
+
+    function fmt2(n){ return String(n).padStart(2,'0'); }
 
     function tick(){
       const now = new Date();
-      clockEl.textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
-      const up = nextSchedule(now);
-      if(!up){ cdEl.textContent='수업 없음'; labelEl.textContent='오늘 일정이 종료되었습니다'; return }
-      const diff = Math.max(0, up.startAt-now);
-      const h = pad2(Math.floor(diff/3600000));
-      const m = pad2(Math.floor((diff%3600000)/60000));
-      const s = pad2(Math.floor((diff%60000)/1000));
-      cdEl.textContent = `${h}:${m}:${s}`;
-      labelEl.textContent = `${up.name} (${up.start}~${up.end})`
+      // 날짜/시계
+      dateEl.textContent = `${now.getFullYear()}-${fmt2(now.getMonth()+1)}-${fmt2(now.getDate())} (${yoilTxt[now.getDay()]})`;
+      timeEl.textContent = `${fmt2(now.getHours())}:${fmt2(now.getMinutes())}:${fmt2(now.getSeconds())}`;
+
+      // 다음 수업
+      const nxt = computeNextClass(now);
+      if(nxt){
+        const s = nxt.meta;
+        nextLine.textContent = `${s.day} ${s.time} · ${s.room}`;
+        const diff = Math.max(0, Math.floor((nxt.when - now)/1000));
+        const hh = Math.floor(diff/3600), mm = Math.floor((diff%3600)/60), ss = diff%60;
+        cdEl.textContent = `${fmt2(hh)}:${fmt2(mm)}:${fmt2(ss)}`;
+      }else{
+        nextLine.textContent = '일정 없음';
+        cdEl.textContent = '--:--:--';
+      }
     }
     tick();
-    homeTickTimer = setInterval(tick, 1000);
+    setInterval(tick, 1000);
 
-    $$('#view [data-go]').forEach(btn=>btn.addEventListener('click',()=>go(btn.dataset.go)));
-
-    const pEl = $('#pomodoroClock');
-    let pLeft = 25*60, pTimer=null;
-    const renderP = ()=>{ pEl.textContent = `${pad2(Math.floor(pLeft/60))}:${pad2(pLeft%60)}` };
-    renderP();
-    $('#pomodoroStart').addEventListener('click',()=>{
-      if(pTimer) return;
-      pTimer = setInterval(()=>{
-        pLeft--; renderP();
-        if(pLeft<=0){ clearInterval(pTimer); pTimer=null; alert('포모도로 종료! 5분 휴식!'); pLeft=5*60; renderP(); }
-      },1000)
-    })
-    $('#pomodoroStop').addEventListener('click',()=>{ if(pTimer){clearInterval(pTimer); pTimer=null} })
-  }
-
-  // ---------- Attendance Tab ----------
-  function initAttend(){
-    $('#attendBtn').addEventListener('click', markAttendance);
-    $('#attendRefresh').addEventListener('click', renderAttendance);
-    $('#attendStatus').textContent = '버튼을 눌러 출석을 체크하세요.';
-    renderAttendance();
-  }
-
-  // ---------- Announce ----------
-  function initAnnounce(){
-    const ul = $('#announceList');
-    ul.innerHTML = CONFIG.announcements.map(a=>`
-      <li class="p-3 rounded-xl bg-slate-800">
-        <div class="font-semibold">${escapeHTML(a.title)}</div>
-        <div class="text-sm text-slate-300">${escapeHTML(a.body)}</div>
-      </li>
-    `).join('');
-  }
-
-  // ---------- Schedule ----------
-  function initSchedule(){
-    const wrap = $('#scheduleList');
-    const days = ['일','월','화','수','목','금','토'];
-    const grouped = {};
-    for(const s of CONFIG.schedule){ (grouped[s.day]??=[]).push(s) }
-    wrap.innerHTML = Object.entries(grouped).sort((a,b)=>a[0]-b[0]).map(([d,items])=>{
-      const rows = items.map(it=>`
-        <div class="grid grid-cols-[80px_1fr] gap-2 items-center">
-          <div class="font-mono text-sm">${escapeHTML(it.start)}~${escapeHTML(it.end)}</div>
-          <div class="font-semibold">${escapeHTML(it.name)}</div>
-        </div>`).join('');
-      return `<div class="bg-slate-800 rounded-xl p-3"><div class="text-slate-300 text-sm mb-2">${days[d]}</div>${rows}</div>`
-    }).join('');
-  }
-
-  // ---------- Materials ----------
-  function initMaterials(){
-    const ul = $('#materialsList');
-    ul.innerHTML = CONFIG.materials.map(m=>`
-      <li class="p-3 rounded-xl bg-slate-800 flex items-center justify-between">
-        <span>${escapeHTML(m.title)}</span>
-        <a class="text-indigo-400 underline" href="${escapeHTML(m.url)}">열기</a>
-      </li>
-    `).join('');
-  }
-
-  // ---------- AI ----------
-  function initAI(){
-    $('#aiForm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const q = $('#aiQuestion').value.trim();
-      if(!q) return;
-      const out = $('#aiResult');
-      out.innerHTML = '<div class="text-sm text-slate-300">분석 중...</div>';
-      try{
-        // Demo: 로컬에서 간단 변환 (실서비스는 fetch(CONFIG.aiEndpoint, ...))
-        const fake = `요청: ${escapeHTML(q)}\n\n초점: 문법·어휘·구조 개선 포인트를 항목화하세요.`;
-        await new Promise(r=>setTimeout(r,700));
-        out.innerHTML = '<pre class="whitespace-pre-wrap">'+fake+'</pre>';
-      }catch(err){ out.innerHTML = '<div class="text-rose-400">오류가 발생했어요.</div>' }
-    })
-  }
-
-  // ---------- Mock Exam ----------
-  function renderMockItem(item, idx){
-    const opts = (item.options||[]).map((op,i)=>`
-      <label class="flex items-center gap-2">
-        <input type="radio" name="q${idx}" value="${i+1}" class="accent-indigo-500" />
-        <span>${escapeHTML(op)}</span>
-      </label>
-    `).join('');
-    const passage = item.passage ? `<div class="text-sm text-slate-300 mb-2">${escapeHTML(item.passage)}</div>` : '';
-    return `<div class="rounded-xl bg-slate-800 p-3">
-      <div class="font-semibold mb-2">Q${idx+1}. ${escapeHTML(item.text||'문항')} ${item.difficulty?`<span class='text-xs text-slate-400 ml-1'>(${item.difficulty})</span>`:''}</div>
-      ${passage}
-      <div class="space-y-1">${opts}</div>
-    </div>`
-  }
-
-  function readMockAnswers(items){
-    return items.map((_,i)=>{
-      const v = document.querySelector(\`input[name="q\${i}"]:checked\`);
-      return v? v.value : '';
-    })
-  }
-
-  function initMock(){
-    $('#loadMockBtn').addEventListener('click', startMock);
-    $('#submitMockBtn').addEventListener('click', submitMock);
-  }
-
-  async function startMock(){
-    // Enhanced exam: sections + explanations + tags
-    const exam = {
-      title: 'DEMO 10문항',
-      sections: [
-        { name:'Reading', items: Array.from({length:5}).map((_,i)=>({
-          text:`리딩 문제 ${i+1}`, options:['A','B','C','D'], answerKey:String((i%4)+1), tags:['inference'], difficulty:'M', explain:'지문 2문장 근거를 통해 추론합니다.'
-        })) },
-        { name:'Listening', items: Array.from({length:5}).map((_,i)=>({
-          text:`리스닝 문제 ${i+1}`, options:['A','B','C','D'], answerKey:String(((i+1)%4)+1), tags:['detail'], difficulty:'E', explain:'세부정보 키워드를 포착하세요.'
-        })) }
-      ]
+    /* ===== 출석 스트릭 ===== */
+    const STREAK_KEY='ace.streak', LAST_KEY='ace.lastAttend';
+    const btn=document.getElementById('attendTodayBtn'), sTxt=document.getElementById('streakText'), lTxt=document.getElementById('lastAttend');
+    const load=(k,def)=>JSON.parse(localStorage.getItem(k)||JSON.stringify(def));
+    let streak=load(STREAK_KEY,0), last=load(LAST_KEY,null);
+    const fmtDate=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    if(last) lTxt.textContent=`마지막 체크: ${last}`;
+    sTxt.textContent=`연속 ${streak}일`;
+    btn.onclick=()=>{
+      const today=fmtDate(new Date());
+      if(last===today) return;
+      streak=(last&&(new Date(today)-new Date(last))===86400000)?streak+1:1;
+      last=today;
+      localStorage.setItem(STREAK_KEY,JSON.stringify(streak));
+      localStorage.setItem(LAST_KEY,JSON.stringify(last));
+      sTxt.textContent=`연속 ${streak}일`; lTxt.textContent=`마지막 체크: ${last}`;
     };
 
-    const items = exam.sections.flatMap(s=>s.items);
-    const wrap = $('#mockWrap');
-    wrap.innerHTML = `<div class="text-slate-300">시험: ${escapeHTML(exam.title)} <span class="text-xs">(${exam.sections.map(s=>s.name).join('/')})</span></div>`+
-      items.map((it,idx)=>renderMockItem(it,idx)).join('');
+    /* ===== 숙제 ===== */
+    const HW_KEY='ace.homework';
+    const hwInput=document.getElementById('hwInput'), hwAdd=document.getElementById('hwAddBtn'), hwList=document.getElementById('hwList');
+    let items=load(HW_KEY,[]);
+    const renderHW=()=>{
+      hwList.innerHTML=items.map((it,i)=>`
+        <li class="flex justify-between">
+          <label><input type="checkbox" ${it.done?'checked':''} data-i="${i}"> ${it.text}</label>
+          <button data-i="${i}" class="text-xs">삭제</button>
+        </li>`).join('');
+      hwList.querySelectorAll('input').forEach(ch=>ch.onchange=e=>{items[e.target.dataset.i].done=e.target.checked; saveHW();});
+      hwList.querySelectorAll('button').forEach(b=>b.onclick=e=>{items.splice(e.target.dataset.i,1); saveHW();});
+    };
+    const saveHW=()=>{localStorage.setItem(HW_KEY,JSON.stringify(items)); renderHW();};
+    hwAdd.onclick=()=>{const t=hwInput.value.trim(); if(!t)return; items.push({text:t,done:false}); hwInput.value=''; saveHW();};
+    renderHW();
 
-    // start timer
-    mockStartAt = Date.now();
-    const timerEl = $('#timer');
-    if(mockTimerId) clearInterval(mockTimerId);
-    mockTimerId = setInterval(()=>{
-      const s = Math.floor((Date.now()-mockStartAt)/1000);
-      const h = pad2(Math.floor(s/3600));
-      const m = pad2(Math.floor((s%3600)/60));
-      const sec = pad2(s%60);
-      timerEl.textContent = `${h}:${m}:${sec}`;
-    }, 1000);
+    /* ===== 포모도로 ===== */
+    const POMO_KEY='ace.pomo'; let s=load(POMO_KEY,{mode:'work',left:1500,running:false});
+    const label=document.getElementById('pomodoroLabel'), startBtn=document.getElementById('pomodoroStart'), stopBtn=document.getElementById('pomodoroStop'), resetBtn=document.getElementById('pomodoroReset');
+    const upd=()=>{label.textContent=`${s.mode==='work'?'작업':'휴식'} ${fmt2(Math.floor(s.left/60))}:${fmt2(s.left%60)}`;};
+    const saveP=()=>localStorage.setItem(POMO_KEY,JSON.stringify(s));
+    let tmr=null; const oneSec=()=>{if(!s.running)return; s.left--; if(s.left<=0){s.mode=s.mode==='work'?'break':'work'; s.left=s.mode==='work'?1500:300;} saveP(); upd();};
+    startBtn.onclick=()=>{s.running=true;saveP(); if(!tmr)tmr=setInterval(oneSec,1000);};
+    stopBtn.onclick =()=>{s.running=false;saveP();};
+    resetBtn.onclick=()=>{s={mode:'work',left:1500,running:false};saveP();upd();};
+    upd(); if(s.running){tmr=setInterval(oneSec,1000);}
 
-    store.set('mock.exam', exam);
+    // AI 히스토리 박스 초기화
+    renderAIHistory();
+    document.getElementById('aiHistoryClear').onclick=()=>{localStorage.removeItem('ace.aiHistory');renderAIHistory();};
+  }
+
+  /* ===== AI ===== */
+  function initAI(){
+    const f=document.getElementById('aiForm'), inp=document.getElementById('aiInput'), out=document.getElementById('aiResult');
+    f.onsubmit=async e=>{
+      e.preventDefault(); out.textContent="피드백 생성중...";
+      try{
+        const r = await fetch(CONFIG.aiEndpoint,{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ taskType:'short', questionText: inp.value, studentAnswer: inp.value })
+        });
+        const data = await r.json();
+        out.innerHTML = renderFeedbackHTML(data);
+        saveAIHistory({
+          when:new Date().toLocaleString('ko-KR'),
+          taskType:'AI 첨삭',
+          score:`${data?.score?.value||0}/${data?.score?.max||0}`,
+          title: inp.value.slice(0,30)
+        });
+      }catch{
+        out.textContent = 'AI 피드백 실패';
+      }
+    };
+  }
+
+  /* ===== MOCK ===== */
+  async function startMock(){
+    const src = document.getElementById('mockSelect')?.value || '/data/mock-01.json';
+    const res = await fetch(src);
+    const exam = await res.json();
+
+    const area = document.getElementById("mockArea");
+    area.innerHTML = exam.items.map(q=>{
+      if(q.type==="mcq"){
+        return `
+          <div class="card">
+            <p class="font-medium" data-answer="${q.answerKey||q.answer||''}">${q.no}. ${q.question}</p>
+            ${q.passage?`<p class="text-sm text-slate-300 mt-1 whitespace-pre-wrap">${q.passage}</p>`:''}
+            <div class="mt-2 space-y-1">
+              ${q.options.map(opt=>`
+                <label class="block text-sm">
+                  <input type="radio" name="q${q.no}" value="${opt}"> ${opt}
+                </label>`).join('')}
+            </div>
+            <button class="mt-2 px-2 py-1 rounded bg-indigo-600 text-xs aiExpBtn">AI 해설</button>
+            <div class="text-sm mt-2 aiExpBox text-slate-300"></div>
+          </div>`;
+      } else {
+        return `
+          <div class="card">
+            <p class="font-medium">${q.no}. ${q.question}</p>
+            <textarea id="q${q.no}" class="w-full rounded bg-slate-900 border border-slate-700 p-2 text-sm"></textarea>
+          </div>`;
+      }
+    }).join('');
+
+    area.addEventListener('click', async (e)=>{
+      const btn = e.target.closest('.aiExpBtn'); if(!btn) return;
+      const card = btn.closest('.card');
+      const head = card.querySelector('p.font-medium');
+      const ans = head?.dataset?.answer || '';
+      const questionText = head?.textContent || '';
+      const options = Array.from(card.querySelectorAll('label')).map(l=>l.textContent.trim());
+      const chosen = (card.querySelector('input[type="radio"]:checked')||{}).value || '';
+      const box = card.querySelector('.aiExpBox'); box.textContent = '해설 생성중…';
+
+      try{
+        const r = await fetch(CONFIG.aiEndpoint,{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            taskType: 'mcq',
+            questionText: [questionText, options.map((o,i)=>String.fromCharCode(65+i)+') '+o).join('\n')].join('\n'),
+            answerKey: ans, studentAnswer: chosen
+          })
+        });
+        const data = await r.json();
+        box.innerHTML = renderFeedbackHTML(data);
+      }catch{ box.textContent = '해설 생성 실패'; }
+    });
   }
 
   function submitMock(){
-    const exam = store.get('mock.exam');
-    if(!exam){ alert('먼저 시험을 시작하세요.'); return }
+    const area = document.getElementById("mockArea");
+    if(!area.firstChild){ alert("먼저 시작하세요!"); return; }
 
-    if(mockTimerId){ clearInterval(mockTimerId); mockTimerId=null }
-    const used = $('#timer')?.textContent || '';
+    const blocks = Array.from(area.querySelectorAll('.card'));
+    let total=0, correct=0; const detail=[];
+    blocks.forEach(block=>{
+      const p = block.querySelector('p.font-medium'); if(!p) return;
+      const num = parseInt((p.textContent||'').split('.')[0]);
+      const radios = block.querySelectorAll(`input[name="q${num}"]`);
+      if(radios.length){
+        const sel = block.querySelector(`input[name="q${num}"]:checked`);
+        const chosen = sel? sel.value : '';
+        const ans = p.dataset.answer || '';
+        total++;
+        const ok = ans && chosen && (ans.trim()===chosen.trim());
+        if(ok) correct++; else {
+          recordWrong({
+            source: 'mock',
+            item: {
+              no: num, type: 'mcq',
+              questionText: p.textContent,
+              options: Array.from(block.querySelectorAll('label')).map(l=>l.textContent.trim()),
+              answerKey: ans
+            },
+            studentAnswer: chosen
+          });
+        }
+        detail.push({ no:num, chosen, ans, ok });
+      }
+    });
 
-    const items = exam.sections.flatMap(s=>s.items);
-    const answers = readMockAnswers(items);
-    let correct=0; const wrong=[]; const tagCounter={};
-    items.forEach((it,idx)=>{
-      const a = answers[idx]||''; const k = it.answerKey;
-      (it.tags||[]).forEach(t=>tagCounter[t]=(tagCounter[t]||0)+ (a===k?0:1));
-      if(a===k) correct++; else wrong.push({
-        index: idx+1,
-        text: it.text,
-        options: it.options,
-        answerKey: k,
-        studentAnswer: a,
-        explain: it.explain,
-        tags: it.tags
-      });
-    })
+    const timer = document.getElementById('timer');
+    const used = timer?.textContent || '';
+    const scoreHTML = `
+      <div class="card">
+        <h3 class="font-semibold">결과</h3>
+        <p class="text-sm mt-1">점수: <b>${correct}/${total}</b></p>
+        <p class="text-xs text-slate-400">소요 시간: ${used||'-'}</p>
+        <div class="text-sm mt-2 space-y-1">
+          ${detail.map(d=>`<div>Q${d.no}: ${d.ok?'✅ 정답':'❌ 오답'} (정답: ${d.ans||'-'} / 내답: ${d.chosen||'(무응답)'})</div>`).join('')}
+        </div>
+      </div>`;
+    area.insertAdjacentHTML('afterend', scoreHTML);
 
-    const score = Math.round(correct/items.length*100);
-    const topTags = Object.entries(tagCounter).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,c])=>`${t}(${c})`).join(', ');
-    $('#mockResult').innerHTML = `<div class="p-3 bg-slate-800 rounded-xl">점수: <b>${score}</b> / 경과: <span class="font-mono">${used}</span> / 오답: ${wrong.length}문항<br><span class="text-slate-300 text-sm">약점 태그: ${topTags||'-'}</span></div>`+
-      (wrong.length? `<div class="mt-3 space-y-2">${wrong.map(w=>`<div class='bg-slate-800 rounded-xl p-3'><div class='font-semibold'>Q${w.index}</div><div class='text-sm mt-1'>정답 ${escapeHTML(w.answerKey)} · 내 답 ${escapeHTML(w.studentAnswer||'(무응답)')}</div>${w.explain?`<div class='text-xs text-slate-300 mt-1'>해설: ${escapeHTML(w.explain)}</div>`:''}${w.tags?`<div class='text-xs text-slate-400 mt-1'>태그: ${w.tags.map(escapeHTML).join(', ')}</div>`:''}</div>`).join('')}</div>`:'' );
-
-    const prev = store.get('wrongs')||[];
-    store.set('wrongs', prev.concat(wrong));
-
-    const hist = store.get('scores')||[]; hist.push({at:Date.now(), score}); store.set('scores', hist.slice(-20));
+    saveAttempt({ when: new Date().toISOString(), score:`${correct}/${total}`, duration: used });
   }
 
-  // ---------- Review (wrongs) ----------
-  function initReview(){
-    const data = store.get('wrongs')||[];
-    const wrap = $('#reviewList');
-    if(!data.length){ wrap.innerHTML = '<div class="text-slate-300">오답이 없습니다.</div>'; return }
+  const ATTEMPT_KEY='ace.mockAttempts';
+  function loadAttempts(){ try{return JSON.parse(localStorage.getItem(ATTEMPT_KEY)||'[]')}catch{return[]} }
+  function saveAttempt(a){ const arr=loadAttempts(); arr.unshift(a); localStorage.setItem(ATTEMPT_KEY, JSON.stringify(arr.slice(0,20))); }
 
-    wrap.innerHTML = data.map(w=>`
-      <div class="bg-slate-800 rounded-xl p-3">
-        <div class="font-semibold">Q${w.index}. ${escapeHTML(w.text||'문항')}</div>
-        <div class="text-sm mt-1">정답: <span class="font-mono">${escapeHTML(w.answerKey||'')}</span></div>
-        <div class="text-sm mt-1 text-slate-300">내 답: ${escapeHTML(w.studentAnswer || '(무응답)')}</div>
-        ${w.explain?`<div class='text-xs text-slate-300 mt-1'>해설: ${escapeHTML(w.explain)}</div>`:''}
-        ${w.options? `<div class="mt-2 grid grid-cols-2 gap-2 text-sm">${w.options.map((op,i)=>`<div class="px-2 py-1 rounded bg-slate-700">${i+1}. ${escapeHTML(op)}</div>`).join('')}</div>`:''}
+  /* ===== REVIEW ===== */
+  const WRONG_KEY = 'ace.wrongs';
+  function loadWrongs(){ try { return JSON.parse(localStorage.getItem(WRONG_KEY) || '[]'); } catch { return []; } }
+  function saveWrongs(arr){ localStorage.setItem(WRONG_KEY, JSON.stringify(arr.slice(0,200))); }
+  function recordWrong(entry){
+    const arr=loadWrongs();
+    arr.unshift({ ...entry, id:Date.now()+'_'+Math.random().toString(36).slice(2,6), whenISO:new Date().toISOString() });
+    saveWrongs(arr);
+  }
+  function renderReviewTab(filter='all'){
+    const root=document.getElementById('wrongList'), resBox=document.getElementById('reviewResult'); resBox.classList.add('hidden'); resBox.innerHTML='';
+    const all=loadWrongs(); const list=(filter==='all'?all:all.filter(x=>x.source===filter));
+    if(list.length===0){ root.innerHTML='<div class="card text-sm text-slate-300">오답 없음</div>'; return; }
+    root.innerHTML=list.map(w=>`
+      <div class="card">
+        <label class="flex items-start gap-3">
+          <input type="checkbox" class="wrong-check mt-1" value="${w.id}">
+          <div>
+            <div class="text-xs text-slate-400">${w.source.toUpperCase()} · ${new Date(w.whenISO).toLocaleString('ko-KR')}</div>
+            <div class="font-medium mt-1">Q${w.item.no}. ${escapeHTML((w.item.questionText||'').split('\n')[0]).slice(0,80)}</div>
+            ${w.item.options? `<div class="text-sm mt-1 whitespace-pre-wrap text-slate-300">${escapeHTML(w.item.options.map((o,i)=>String.fromCharCode(65+i)+') '+o).join('\n'))}</div>`:''}
+            <div class="text-sm mt-1 text-slate-300">내 답: ${escapeHTML(w.item.studentAnswer||'(무응답)')}</div>
+            ${w.item.answerKey? `<div class="text-sm text-slate-400">정답: ${escapeHTML(w.item.answerKey)}</div>`:''}
+          </div>
+        </label>
       </div>
     `).join('');
-  }
 
-  // ---------- Dashboard ----------
-  function initDash(){
-    const att = store.get('attendance')||[];
-    const now=new Date();
-    const wStart=new Date(now); const day=now.getDay(); const diff=(day+6)%7; wStart.setDate(now.getDate()-diff); wStart.setHours(0,0,0,0);
-    const weekCnt = att.filter(a=>a.type==='present' && a.at>=wStart.getTime()).length;
-    $('#dashAttendWeek').textContent = String(weekCnt);
-
-    const scores = store.get('scores')||[];
-    const avg = scores.length ? Math.round(scores.reduce((s,x)=>s+x.score,0)/scores.length) : '-';
-    $('#dashAvgScore').textContent = String(avg);
-
-    const wrongs = store.get('wrongs')||[]; const t={};
-    wrongs.forEach(w=> (w.tags||[]).forEach(k=> t[k]=(t[k]||0)+1 ));
-    const top = Object.entries(t).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    $('#dashWeakTags').innerHTML = top.length? top.map(([k,c])=>`<li class='flex items-center justify-between bg-slate-800 rounded-xl px-3 py-2'><span>${escapeHTML(k)}</span><span class='text-xs px-2 py-1 rounded bg-rose-600'>${c}</span></li>`).join('') : '<div class="text-slate-300">데이터가 부족합니다.</div>';
-  }
-
-  // ---------- Boot ----------
-  function initApp(){
-    // set brand
-    $('#brandTitle').textContent = CONFIG.brand || 'ACE ENGLISH';
-
-    // nav events
-    $$('#nav [data-tab]').forEach(btn=>btn.addEventListener('click',()=>go(btn.dataset.tab)));
-
-    // logout
-    $('#logoutBtn')?.addEventListener('click', ()=>{ localStorage.removeItem('isAuthed'); showLogin() });
-
-    if(authed()) showApp(); else showLogin();
-
-    // PWA: dynamic manifest + sw
-    setupPWA();
-  }
-
-  // ---------- PWA (single file friendly) ----------
-  function setupPWA(){
-    try{
-      const manifest = {
-        name: 'ACE ENGLISH', short_name: 'ACE', start_url: '.', display: 'standalone',
-        background_color: '#0f172a', theme_color: '#0f172a', icons: []
-      };
-      const manURL = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:'application/json'}));
-      const link = document.createElement('link'); link.rel = 'manifest'; link.href = manURL; document.head.appendChild(link);
-
-      if('serviceWorker' in navigator){
-        const SW_VER='ace-v2';
-        const swCode = `const VER='ace-v2';
-self.addEventListener('install',e=>{e.waitUntil(caches.open(VER).then(c=>c.addAll(['./']))) });
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VER).map(k=>caches.delete(k))))) });
-self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))) });`;
-        const swURL = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
-        navigator.serviceWorker.register(swURL);
+    document.querySelectorAll('.filter-btn').forEach(b=> b.onclick=()=>renderReviewTab(b.dataset.src));
+    document.getElementById('aiFeedbackSelected').onclick = async ()=>{
+      const sel = new Set(Array.from(document.querySelectorAll('.wrong-check:checked')).map(b=>b.value));
+      if(sel.size===0){ alert('오답을 선택하세요.'); return; }
+      resBox.classList.remove('hidden'); resBox.innerHTML='';
+      for(const w of list){
+        if(!sel.has(w.id)) continue;
+        const card = document.createElement('div'); card.className='card';
+        card.innerHTML = `<p class="font-medium mb-1">Q${w.item.no} 피드백</p><p class="text-sm text-slate-300">생성 중…</p>`;
+        resBox.appendChild(card);
+        try{
+          const r = await fetch(CONFIG.aiEndpoint,{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+              taskType: (w.item.type==='writing'?'writing':(w.item.type==='short'?'short':'mcq')),
+              questionText: w.item.questionText,
+              answerKey: w.item.answerKey || '',
+              studentAnswer: w.item.studentAnswer || ''
+            })
+          });
+          const data = await r.json();
+          card.innerHTML = `<p class="font-medium mb-1">Q${w.item.no} 피드백</p>` + renderFeedbackHTML(data);
+        }catch{
+          card.innerHTML = `<p class="font-medium mb-1">Q${w.item.no} 피드백</p><p class="text-sm text-red-300">AI 피드백 실패</p>`;
+        }
       }
-    }
-    catch(err){
-      console.warn('PWA setup failed', err)
-    }
+    };
   }
 
-  // single init
-  document.addEventListener('DOMContentLoaded', initApp);
-  </script>
+  /* ===== 공통 유틸 ===== */
+  function saveAIHistory(entry){
+    const key='ace.aiHistory'; const arr=JSON.parse(localStorage.getItem(key)||'[]'); arr.unshift(entry); localStorage.setItem(key,JSON.stringify(arr.slice(0,5)));
+  }
+  function renderAIHistory(){
+    const ul=document.getElementById('aiHistory'); if(!ul)return;
+    const arr=JSON.parse(localStorage.getItem('ace.aiHistory')||'[]');
+    if(arr.length===0){ ul.innerHTML=`<li class="text-sm text-slate-400">기록 없음</li>`; return; }
+    ul.innerHTML=arr.map(x=>`<li class="text-sm">
+      <div class="flex justify-between"><span>${x.when}</span><span>${x.taskType}</span></div>
+      <div>점수: ${x.score}</div>
+      <div class="truncate">${x.title}</div>
+    </li>`).join('');
+  }
+  function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+  function renderFeedbackHTML(data){
+    return `
+      <div class="mt-2 p-2 rounded bg-slate-800">
+        <div>점수: ${data?.score?.value||0}/${data?.score?.max||0}</div>
+        <div class="mt-1">${escapeHTML(data?.verdict||'')}</div>
+        <div class="mt-1 whitespace-pre-wrap">${escapeHTML(data?.explanation||'')}</div>
+        ${Array.isArray(data?.corrections)&&data.corrections.length? `<ul class="list-disc ml-5 mt-1">${data.corrections.map(c=>`<li>${escapeHTML(c)}</li>`).join('')}</ul>`:''}
+        ${Array.isArray(data?.nextSteps)&&data.nextSteps.length? `<p class="mt-1 text-xs text-slate-400">다음 학습: ${data.nextSteps.map(escapeHTML).join(', ')}</p>`:''}
+      </div>`;
+  }
+
+  function showNav(){ document.getElementById('mainNav')?.classList.remove('hidden'); }
+  function hideNav(){ document.getElementById('mainNav')?.classList.add('hidden'); }
+
+  initApp();
+  </script> 
+
+
+
+
+  <style>
+    .card { background: rgba(30,41,59,0.6); border: 1px solid rgba(51,65,85,0.6); padding: 1rem; border-radius: 0.75rem; }
+  </style>
 </body>
 </html>
