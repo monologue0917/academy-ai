@@ -60,8 +60,11 @@ export default function ClassesPage() {
       setIsLoading(true);
       const response = await fetch(`/api/admin/classes?academyId=${user.academyId}`);
       const data = await response.json();
+      
+      console.log('[fetchClasses] API response:', data);
 
       if (data.success) {
+        console.log('[fetchClasses] Setting classes:', data.classes?.length, 'items');
         setClasses(data.classes || []);
       }
     } catch (error) {
@@ -77,17 +80,27 @@ export default function ClassesPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!classToDelete) return;
+    if (!classToDelete || !user?.academyId) return;
 
-    setDeletingClassId(classToDelete.id);
+    const deleteId = classToDelete.id;
+    setDeletingClassId(deleteId);
+    
     try {
-      const response = await fetch(`/api/admin/classes/${classToDelete.id}`, {
-        method: 'DELETE',
-      });
+      // academyId를 함께 보내서 삭제 후 업데이트된 목록을 받아옴
+      const response = await fetch(
+        `/api/admin/classes/${deleteId}?academyId=${user.academyId}`,
+        { method: 'DELETE' }
+      );
       const data = await response.json();
 
       if (data.success) {
-        await fetchClasses();
+        // 서버에서 반환한 업데이트된 목록 사용 (동일 연결에서 조회됨)
+        if (data.classes) {
+          setClasses(data.classes);
+        } else {
+          // fallback: 낙관적 업데이트
+          setClasses(prev => prev.filter(c => c.id !== deleteId));
+        }
         setClassToDelete(null);
       } else {
         alert(data.error || '반 삭제에 실패했습니다');
@@ -207,9 +220,13 @@ export default function ClassesPage() {
           academyId={user?.academyId || ''}
           teacherId={user?.id || ''}
           onClose={() => setShowCreateModal(false)}
-          onCreated={() => {
+          onCreated={(updatedClasses) => {
             setShowCreateModal(false);
-            fetchClasses();
+            if (updatedClasses) {
+              setClasses(updatedClasses);
+            } else {
+              fetchClasses();
+            }
           }}
         />
       )}
@@ -260,7 +277,7 @@ function CreateClassModal({
   academyId: string;
   teacherId: string;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (classes?: ClassItem[]) => void;
 }) {
   const [grade, setGrade] = useState('');
   const [name, setName] = useState('');
@@ -299,7 +316,8 @@ function CreateClassModal({
       const data = await response.json();
 
       if (data.success) {
-        onCreated();
+        // 서버에서 반환한 업데이트된 목록 사용
+        onCreated(data.classes);
       } else {
         setError(data.error || '반 생성에 실패했습니다');
       }

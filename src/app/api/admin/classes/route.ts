@@ -11,15 +11,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[Classes API] Starting...');
-    console.log('[Classes API] Request URL:', request.url);
-    
     const { searchParams } = new URL(request.url);
     const academyId = searchParams.get('academyId');
-
-    console.log('[Classes API] academyId:', academyId);
-    console.log('[Classes API] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30));
-    console.log('[Classes API] Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
     if (!academyId) {
       return NextResponse.json(
@@ -36,10 +29,7 @@ export async function GET(request: NextRequest) {
       .select('id, name, description, grade, is_active, teacher_id')
       .eq('academy_id', academyId)
       .eq('is_active', true)
-      .order('grade', { ascending: false })
-      .order('name', { ascending: true });
-
-    console.log('[Classes API] Query result:', { count: classes?.length, error: classesError });
+      .order('created_at', { ascending: false });
 
     if (classesError) {
       console.error('[Classes API] Error:', classesError);
@@ -81,7 +71,18 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    console.log('[Classes API] Final result:', classesWithDetails.length, 'classes');
+    // JS에서 정렬: grade(내림차순) → name(오름차순)
+    const gradeOrder: Record<string, number> = {
+      '고3': 1, '고2': 2, '고1': 3,
+      '중3': 4, '중2': 5, '중1': 6,
+    };
+
+    classesWithDetails.sort((a, b) => {
+      const gradeA = gradeOrder[a.grade || ''] || 99;
+      const gradeB = gradeOrder[b.grade || ''] || 99;
+      if (gradeA !== gradeB) return gradeA - gradeB;
+      return (a.name || '').localeCompare(b.name || '', 'ko');
+    });
 
     return NextResponse.json({
       success: true,

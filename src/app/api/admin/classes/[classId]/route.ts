@@ -13,16 +13,7 @@ export async function GET(
   context: { params: Promise<{ classId: string }> }
 ) {
   try {
-    console.log('[Class Detail] Starting...');
-    console.log('[Class Detail] context:', JSON.stringify(context));
-    
     const { classId } = await context.params;
-    console.log('[Class Detail] classId:', classId);
-    
-    // 환경 변수 확인
-    console.log('[Class Detail] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30));
-    console.log('[Class Detail] Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
     const supabase = createClient();
 
     // 1. 반 정보 조회
@@ -32,9 +23,6 @@ export async function GET(
       .eq('id', classId)
       .eq('is_active', true)
       .single();
-
-    console.log('[Class Detail] classData:', classData);
-    console.log('[Class Detail] classError:', classError);
 
     if (classError || !classData) {
       return NextResponse.json(
@@ -110,22 +98,73 @@ export async function DELETE(
 ) {
   try {
     const { classId } = await context.params;
+    const { searchParams } = new URL(request.url);
+    const academyId = searchParams.get('academyId');
+    
     const supabase = createClient();
 
+    // 삭제 (비활성화)
     const { error } = await supabase
       .from('classes')
       .update({ is_active: false })
       .eq('id', classId);
 
     if (error) {
+      console.error('[Class Delete] Failed:', error);
       return NextResponse.json(
         { success: false, error: '반 삭제 실패' },
         { status: 500 }
       );
     }
 
+    // 삭제 후 같은 연결에서 업데이트된 목록 반환 (academyId가 있을 때만)
+    if (academyId) {
+      const { data: updatedClasses } = await supabase
+        .from('classes')
+        .select('id, name, description, grade, is_active, teacher_id')
+        .eq('academy_id', academyId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      // 각 반의 학생 수 + 선생님 정보 조회
+      const classesWithDetails = await Promise.all(
+        (updatedClasses || []).map(async (cls) => {
+          const { count } = await supabase
+            .from('class_enrollments')
+            .select('*', { count: 'exact', head: true })
+            .eq('class_id', cls.id)
+            .eq('is_active', true);
+
+          let teacher = null;
+          if (cls.teacher_id) {
+            const { data: teacherData } = await supabase
+              .from('users')
+              .select('id, name')
+              .eq('id', cls.teacher_id)
+              .single();
+            teacher = teacherData;
+          }
+
+          return {
+            id: cls.id,
+            name: cls.name,
+            description: cls.description,
+            grade: cls.grade,
+            teacher,
+            studentCount: count || 0,
+          };
+        })
+      );
+
+      return NextResponse.json({ 
+        success: true, 
+        classes: classesWithDetails 
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error('[Class Delete] Exception:', error);
     return NextResponse.json(
       { success: false, error: '서버 오류' },
       { status: 500 }
