@@ -11,9 +11,15 @@ export async function GET(
   context: { params: Promise<{ classId: string }> }
 ) {
   try {
+    console.log('[Class Detail] Starting...');
+    console.log('[Class Detail] context:', JSON.stringify(context));
+    
     const { classId } = await context.params;
-
     console.log('[Class Detail] classId:', classId);
+    
+    // 환경 변수 확인
+    console.log('[Class Detail] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30));
+    console.log('[Class Detail] Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
     const supabase = createClient();
 

@@ -9,10 +9,15 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[Classes API] Starting...');
+    console.log('[Classes API] Request URL:', request.url);
+    
     const { searchParams } = new URL(request.url);
     const academyId = searchParams.get('academyId');
 
     console.log('[Classes API] academyId:', academyId);
+    console.log('[Classes API] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30));
+    console.log('[Classes API] Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
     if (!academyId) {
       return NextResponse.json(
