@@ -11,6 +11,7 @@ import {
   Button,
   PlusIcon,
   UsersIcon,
+  TrashIcon,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 
@@ -43,6 +44,8 @@ export default function ClassesPage() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
+  const [classToDelete, setClassToDelete] = useState<ClassItem | null>(null);
 
   useEffect(() => {
     if (user?.academyId) {
@@ -65,6 +68,34 @@ export default function ClassesPage() {
       console.error('Classes fetch error:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, classItem: ClassItem) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    setClassToDelete(classItem);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!classToDelete) return;
+
+    setDeletingClassId(classToDelete.id);
+    try {
+      const response = await fetch(`/api/admin/classes/${classToDelete.id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        await fetchClasses();
+        setClassToDelete(null);
+      } else {
+        alert(data.error || '반 삭제에 실패했습니다');
+      }
+    } catch (error) {
+      alert('서버 오류가 발생했습니다');
+    } finally {
+      setDeletingClassId(null);
     }
   };
 
@@ -129,6 +160,15 @@ export default function ClassesPage() {
               onClick={() => router.push(`/admin/classes/${classItem.id}`)}
               className="relative"
             >
+              {/* 삭제 버튼 */}
+              <button
+                onClick={(e) => handleDeleteClick(e, classItem)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors z-10"
+                title="반 삭제"
+              >
+                <TrashIcon size={16} />
+              </button>
+
               <CardHeader 
                 title={classItem.name}
                 subtitle={classItem.teacher ? `담당: ${classItem.teacher.name}` : '담당 미지정'}
@@ -172,6 +212,39 @@ export default function ClassesPage() {
             fetchClasses();
           }}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {classToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">반 삭제</h3>
+            <p className="text-slate-600 mb-4">
+              "{classToDelete.name}" 반을 삭제하시겠습니까?
+              <br />
+              <span className="text-sm text-rose-600">
+                이 반에 소속된 학생들은 반 배정이 해제됩니다.
+              </span>
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => setClassToDelete(null)}
+                disabled={deletingClassId !== null}
+              >
+                취소
+              </Button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deletingClassId !== null}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-xl disabled:opacity-50"
+              >
+                {deletingClassId ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
