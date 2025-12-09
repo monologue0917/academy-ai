@@ -1,0 +1,351 @@
+{
+  "id": "mock-2025-09-k1",
+  "title": "2025년 9월 고1 전국연합학력평가 영어",
+  "timeLimit": 70,
+  "meta": {
+    "grade": 1,
+    "month": 9,
+    "year": 2025,
+    "source": "Korea HS"
+  },
+  "items": [
+    {
+      "no": 1,
+      "type": "mcq",
+      "question": "다음을 듣고, 여자가 하는 말의 목적으로 가장 적절한 것을 고르시오.",
+      "answerKey": "학부모 간담회를 위한 교직원 주차 장소 변경을 알리려고",
+      "answer": "",
+      "options": [
+        "학부모 간담회 참석을 독려하려고",
+        "학부모 상담 기간 연기를 안내하려고",
+        "교직원 회의 시간 변경에 대한 협조를 요청하려고",
+        "학부모 간담회를 위한 교직원 주차 장소 변경을 알리려고",
+        "지역 주민 행사를 위한 주말 교내 주차 허용을 공지하려고"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q01.mp3",
+      "answerChoice": "④",
+      "explanation": "교직원 주차 장소를 커뮤니티센터로 안내(간담회 원활 진행 위한 협조)."
+    },
+    {
+      "no": 2,
+      "type": "mcq",
+      "question": "대화를 듣고, 남자의 의견으로 가장 적절한 것을 고르시오.",
+      "answerKey": "환경을 위해 친환경 가방을 가능한 오래 사용해야 한다.",
+      "answer": "",
+      "options": [
+        "환경을 위해 친환경 가방을 가능한 오래 사용해야 한다.",
+        "가방 구입 시 디자인과 실용성을 동시에 고려해야 한다.",
+        "윤리적인 소비를 위해 친환경 제품을 선택해야 한다.",
+        "환경을 위해 일회용 봉투의 사용을 줄여야 한다.",
+        "쇼핑할 때 할인 혜택을 잘 활용해야 한다."
+      ],
+      "audio": "/data/audio/2025-09-k1-Q02.mp3",
+      "answerChoice": "①",
+      "explanation": "에코백도 ‘오래 쓰기’가 환경에 이롭다는 남자의 의견."
+    },
+    {
+      "no": 3,
+      "type": "mcq",
+      "question": "다음을 듣고, 여자가 하는 말의 요지로 가장 적절한 것을 고르시오.",
+      "answerKey": "배운 내용을 소리내어 설명하는 것이 기억에 도움이 된다.",
+      "answer": "",
+      "options": [
+        "이해가 선행되어야 학습 효과가 극대화된다.",
+        "학생을 가르칠 때 큰 소리로 말해 집중시켜야 한다.",
+        "발표 시 핵심어를 반복하여 말하는 것이 효과적이다.",
+        "수업에서 이해한 내용을 빠른 시간 내에 복습해야 한다.",
+        "배운 내용을 소리내어 설명하는 것이 기억에 도움이 된다."
+      ],
+      "audio": "/data/audio/2025-09-k1-Q03.mp3",
+      "answerChoice": "⑤",
+      "explanation": "배운 내용을 소리 내어 설명하면 기억에 도움이 됨."
+    },
+    {
+      "no": 4,
+      "type": "mcq",
+      "question": "대화를 듣고, 그림에서 대화의 내용과 일치하지 않는 것을 고르시오.",
+      "answerKey": "",
+      "answer": "",
+      "options": [],
+      "audio": "/data/audio/2025-09-k1-Q04.mp3",
+      "notes": "그림 보기 필요",
+      "answerChoice": "⑤",
+      "explanation": "그림과 불일치 항목 고르는 문제(정답 ⑤)."
+    },
+    {
+      "no": 5,
+      "type": "mcq",
+      "question": "대화를 듣고, 남자가 할 일로 가장 적절한 것을 고르시오.",
+      "answerKey": "문자 메시지 보내기",
+      "answer": "",
+      "options": [
+        "바닥 보호용 천 가져오기",
+        "문자 메시지 보내기",
+        "벽화 디자인 선택하기",
+        "간식 구입하기",
+        "페인트와 붓 주문하기"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q05.mp3",
+      "answerChoice": "②",
+      "explanation": "남자가 할 일 = 문자 메시지 보내기."
+    },
+    {
+      "no": 6,
+      "type": "mcq",
+      "question": "대화를 듣고, 여자가 지불할 금액을 고르시오. [3점]",
+      "answerKey": "$45",
+      "answer": "",
+      "options": [
+        "$25",
+        "$35",
+        "$40",
+        "$45",
+        "$50"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q06.mp3",
+      "answerChoice": "④",
+      "explanation": "요금 15×2 + 10×2 = 50 → 10% 할인 = $45."
+    },
+    {
+      "no": 7,
+      "type": "mcq",
+      "question": "대화를 듣고, 남자가 학교 영화제에 갈 수 없는 이유를 고르시오.",
+      "answerKey": "결혼식에 참석해야 해서",
+      "answer": "",
+      "options": [
+        "가족 여행을 가야 해서",
+        "결혼식에 참석해야 해서",
+        "축제 행사를 진행해야 해서",
+        "학교 과제를 제출해야 해서",
+        "아르바이트 면접을 봐야 해서"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q07.mp3",
+      "answerChoice": "②",
+      "explanation": "학교 영화제 불참 이유 = 결혼식 참석."
+    },
+    {
+      "no": 8,
+      "type": "mcq",
+      "question": "대화를 듣고, Topas Beachcombing에 관해 언급되지 않은 것을 고르시오.",
+      "answerKey": "참가 인원",
+      "answer": "",
+      "options": [
+        "날짜",
+        "등록 방법",
+        "준비물",
+        "참가 인원",
+        "참가비"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q08.mp3",
+      "answerChoice": "④",
+      "explanation": "날짜/등록/준비물/참가비 언급, ‘참가 인원’ 언급 없음."
+    },
+    {
+      "no": 9,
+      "type": "mcq",
+      "question": "Time Travel VR Experience에 관한 다음 내용을 듣고, 일치하지 않는 것을 고르시오.",
+      "answerKey": "전문가 가이드를 현장에서 신청할 수 있다.",
+      "answer": "",
+      "options": [
+        "VR을 통해 한국 석기 시대를 경험한다.",
+        "9월 한 달간 진행된다.",
+        "어린이를 위한 VR 체험 구역이 있다.",
+        "전문가 가이드를 현장에서 신청할 수 있다.",
+        "입장료는 무료이다."
+      ],
+      "audio": "/data/audio/2025-09-k1-Q09.mp3",
+      "answerChoice": "④",
+      "explanation": "전문가 가이드는 현장 신청 불가(사전예약자만)."
+    },
+    {
+      "no": 10,
+      "type": "mcq",
+      "question": "다음 표를 보면서 대화를 듣고, 남자가 주문할 스마트 배낭을 고르시오.",
+      "answerKey": "B",
+      "answer": "",
+      "passage": "Smart Backpacks\nModel  Price  Size        Safety Feature  Charging Port\nA      $75    13 inches   ×               Internal\nB      $85    15 inches   ○               External\nC      $90    16 inches   ○               Internal\nD      $95    16 inches   ×               External\nE      $110   17 inches   ○               External",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q10.mp3",
+      "answerChoice": "②",
+      "explanation": "100달러 이하·15인치 이상·안전기능·외부포트 → B."
+    },
+    {
+      "no": 11,
+      "type": "mcq",
+      "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오.",
+      "answerKey": "Yes, the repairman is on the way with a spare tire.",
+      "answer": "",
+      "options": [
+        "Yes, the repairman is on the way with a spare tire.",
+        "Of course, I filled up the tank at the gas station.",
+        "No, I can’t find the entrance to the building.",
+        "Don’t worry. You can use my tire.",
+        "I did. I got here just in time."
+      ],
+      "audio": "/data/audio/2025-09-k1-Q11.mp3",
+      "answerChoice": "①",
+      "explanation": "타이어 문제 상황에 ‘수리기사 오는 중’이 적절."
+    },
+    {
+      "no": 12,
+      "type": "mcq",
+      "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오.",
+      "answerKey": "Exactly! At home you can watch movies whenever you want.",
+      "answer": "",
+      "options": [
+        "That effect in the theater makes your experience special.",
+        "I prefer to follow the fixed time schedule at work.",
+        "Right, the theater has set up comfortable chairs.",
+        "Really? I haven’t watched movies with friends at home.",
+        "Exactly! At home you can watch movies whenever you want."
+      ],
+      "audio": "/data/audio/2025-09-k1-Q12.mp3",
+      "answerChoice": "⑤",
+      "explanation": "집에서는 ‘언제든 볼 수 있다’(자유로운 시청시간)."
+    },
+    {
+      "no": 13,
+      "type": "mcq",
+      "question": "대화를 듣고, 남자의 마지막 말에 대한 여자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+      "answerKey": "Sure. I’ll recommend a list of courses you might like.",
+      "answer": "",
+      "options": [
+        "Sure. I’ll recommend a list of courses you might like.",
+        "Okay. Choose a course you think you’ll score well in.",
+        "Cheer up! You’ll make up with Henry soon.",
+        "Well, the time to choose courses is over.",
+        "No worries. I think you did your best!"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q13.mp3",
+      "answerChoice": "①",
+      "explanation": "과목 추천을 해 주겠다는 응답."
+    },
+    {
+      "no": 14,
+      "type": "mcq",
+      "question": "대화를 듣고, 여자의 마지막 말에 대한 남자의 응답으로 가장 적절한 것을 고르시오. [3점]",
+      "answerKey": "Good decision. I’m sure you’ll do a good job.",
+      "answer": "",
+      "options": [
+        "Good decision. I’m sure you’ll do a good job.",
+        "Yes. Let’s remove the kitchen table for more space.",
+        "I don’t think so. I could never do something like that.",
+        "Exactly. You’d rather work harder to earn more money.",
+        "No way. You should stick to your usual spending habits."
+      ],
+      "audio": "/data/audio/2025-09-k1-Q14.mp3",
+      "answerChoice": "①",
+      "explanation": "결정 지지·격려(“잘할 거야”)."
+    },
+    {
+      "no": 15,
+      "type": "mcq",
+      "question": "다음 상황 설명을 듣고, Liam이 Sophia에게 할 말로 가장 적절한 것을 고르시오.",
+      "answerKey": "Can I borrow your mini oven to practice baking cookies?",
+      "answer": "",
+      "options": [
+        "Can I borrow your mini oven to practice baking cookies?",
+        "Are you using the recipe for cookies that I gave you?",
+        "Do you want to learn how to bake cookies together?",
+        "Where will you buy a mini oven to use at home?",
+        "How do you make your cookies taste so good?"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q15.mp3",
+      "answerChoice": "①",
+      "explanation": "미니 오븐 ‘빌려 줄 수 있니?’"
+    },
+    {
+      "no": 16,
+      "type": "mcq",
+      "question": "여자가 하는 말의 주제로 가장 적절한 것은? (두 번 들려줌)",
+      "answerKey": "essential items for observing wild animals",
+      "answer": "",
+      "options": [
+        "tips for using outdoor items for camping",
+        "essential items for observing wild animals",
+        "practical items made from natural surroundings",
+        "costs of upgrading tools for wildlife observation",
+        "tools that were inspired by wild animals’ behaviors"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q16.mp3",
+      "notes": "듣기 2회 제공",
+      "answerChoice": "②",
+      "explanation": "주제 = 야생동물 관찰 필수품."
+    },
+    {
+      "no": 17,
+      "type": "mcq",
+      "question": "언급된 물건이 아닌 것은? (두 번 들려줌)",
+      "answerKey": "a flashlight",
+      "answer": "",
+      "options": [
+        "a notebook",
+        "a camera",
+        "a raincoat",
+        "a flashlight",
+        "a map"
+      ],
+      "audio": "/data/audio/2025-09-k1-Q17.mp3",
+      "notes": "듣기 2회 제공",
+      "answerChoice": "④",
+      "explanation": "언급되지 않은 물건 = flashlight."
+    },
+    {
+      "no": 18,
+      "type": "mcq",
+      "question": "다음 글의 목적으로 가장 적절한 것은?",
+      "answerKey": "도서관 운영 시간 연장을 요청하려고",
+      "answer": "",
+      "passage": "Student Council president asks to extend library closing time from 5 p.m. to 7 p.m. to support study/research after classes.",
+      "options": [
+        "신간 도서 구입을 건의하려고",
+        "도서관 프로그램 확대를 부탁하려고",
+        "도서관 운영 시간 연장을 요청하려고",
+        "도서 대출 시스템 개선에 감사하려고",
+        "도서관 열람실 공간 확대를 제안하려고"
+      ],
+      "answerChoice": "③",
+      "explanation": "목적 = 도서관 운영시간 연장 요청."
+    },
+    {
+      "no": 19,
+      "type": "mcq",
+      "question": "다음 글에 드러난 ‘I’의 심경 변화로 가장 적절한 것은?",
+      "answerKey": "nervous → pleased",
+      "answer": "",
+      "passage": "Waiting for audition result; call confirms role 'second senior munchkin' → excitement/pleased.",
+      "options": [
+        "puzzled → calm",
+        "bored → confused",
+        "nervous → pleased",
+        "satisfied → regretful",
+        "confident → disappointed"
+      ],
+      "answerChoice": "③",
+      "explanation": "심경 변화 = 긴장 → 기쁨."
+    },
+    {
+      "no": 20,
+      "type": "mcq",
+      "question": "다음 글에서 필자가 주장하는 바로 가장 적절한 것은?",
+      "answerKey": "수업을 효과적으로 전개하기 위해 시작 루틴을 마련하라.",
+      "answer": "",
+      "passage": "Opening minutes set the tone; establish an opening routine so students transition and focus quickly; be prepared.",
+      "options": [
+        "학생의 적극적인 참여를 위해 포용적 수업 분위기를 형성하라.",
+        "수업을 효과적으로 전개하기 위해 시작 루틴을 마련하라.",
+        "학습 동기를 부여할 수 있는 창의적인 수업 자료를 개발하라.",
+        "적절한 학습량 조절을 통해 학습 부담을 줄여라.",
+        "학생이 스스로 학습 루틴을 만들도록 장려하라."
+      ],
+      "answerChoice": "②",
+      "explanation": "주장 = 수업 시작 루틴 마련."
+    }
+  ]
+}

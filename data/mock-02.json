@@ -1,0 +1,141 @@
+{
+  "title": "ACE 모의고사 02",
+  "timeLimit": 70,
+  "items": [
+    {
+      "no": 1,
+      "type": "mcq",
+      "question": "다음 글의 요지로 가장 적절한 것은?",
+      "passage": "People often overestimate what they can accomplish in a day but underestimate what they can achieve in a year.",
+      "options": [
+        "장기 목표의 가치를 과소평가한다",
+        "단기 성취는 항상 과대평가된다",
+        "하루 계획은 연간 계획보다 중요하다",
+        "시간 관리보다 동기 부여가 더 중요하다",
+        "연간 목표는 불필요하다"
+      ],
+      "answer": "장기 목표의 가치를 과소평가한다",
+      "answerKey": "장기 목표의 가치를 과소평가한다"
+    },
+    {
+      "no": 2,
+      "type": "mcq",
+      "question": "밑줄 친 단어와 가장 가까운 의미는 무엇인가?",
+      "passage": "The coach gave the team a **candid** review of their performance, pointing out both strengths and weaknesses.",
+      "options": ["vague", "honest", "hostile", "casual", "silent"],
+      "answer": "honest",
+      "answerKey": "honest"
+    },
+    {
+      "no": 3,
+      "type": "mcq",
+      "question": "다음 글의 흐름으로 보아 빈칸에 들어갈 말로 가장 적절한 것은?",
+      "passage": "While technology can enhance learning by providing access to information, it cannot replace the role of a teacher in fostering critical thinking. Thus, technology should be viewed as ______.",
+      "options": ["an obstacle to education", "a complete substitute for teachers", "a tool that complements instruction", "a distraction that must be banned", "a punishment for inattentive students"],
+      "answer": "a tool that complements instruction",
+      "answerKey": "a tool that complements instruction"
+    },
+    {
+      "no": 4,
+      "type": "mcq",
+      "question": "다음 글의 핵심 내용으로 가장 적절한 것은?",
+      "passage": "In experiments, people who wrote down their goals were significantly more likely to achieve them than those who merely thought about them.",
+      "options": [
+        "목표를 공개하면 달성률이 낮아진다",
+        "목표를 기록하는 것이 달성 가능성을 높인다",
+        "목표는 머릿속에만 두는 것이 효과적이다",
+        "목표 달성은 운에 달려 있다",
+        "구체적인 목표는 필요하지 않다"
+      ],
+      "answer": "목표를 기록하는 것이 달성 가능성을 높인다",
+      "answerKey": "목표를 기록하는 것이 달성 가능성을 높인다"
+    },
+    {
+      "no": 5,
+      "type": "mcq",
+      "question": "문맥상 밑줄 친 대명사 that 이 가리키는 것으로 가장 적절한 것은?",
+      "passage": "Some students prefer studying alone, while others find group study more effective. Despite these differences, both approaches share one thing: they require discipline. Without that, progress is unlikely.",
+      "options": [
+        "group study",
+        "studying alone",
+        "differences",
+        "discipline",
+        "progress"
+      ],
+      "answer": "discipline",
+      "answerKey": "discipline"
+    },
+    {
+      "no": 6,
+      "type": "mcq",
+      "question": "어법상 옳은 문장을 고르시오.",
+      "options": [
+        "Each of the students have submitted their reports.",
+        "The number of applicants are steadily increasing.",
+        "Neither the teacher nor the students was late.",
+        "He insisted to go home early.",
+        "There is many reasons to believe that."
+      ],
+      "answer": "Neither the teacher nor the students was late.",
+      "answerKey": "Neither the teacher nor the students was late."
+    },
+    {
+      "no": 7,
+      "type": "mcq",
+      "question": "다음 글의 주제로 가장 적절한 것은?",
+      "passage": "Creativity is not a rare gift; it is a habit of mind developed through practice and curiosity.",
+      "options": [
+        "창의성은 타고나는 능력이다",
+        "창의성은 습관과 호기심으로 길러진다",
+        "창의성은 연습과 무관하다",
+        "호기심은 창의성을 방해한다",
+        "창의성은 규칙을 따르는 데서 나온다"
+      ],
+      "answer": "창의성은 습관과 호기심으로 길러진다",
+      "answerKey": "창의성은 습관과 호기심으로 길러진다"
+    },
+    {
+      "no": 8,
+      "type": "mcq",
+      "question": "다음 글의 내용과 일치하지 않는 것은?",
+      "passage": "Many apps claim to improve concentration, but their effectiveness varies. Some users report better focus, while others are distracted by notifications.",
+      "options": [
+        "집중력 향상 앱들의 효과는 사람마다 다르다",
+        "일부 사용자들은 더 나은 집중을 경험한다",
+        "모든 사용자들이 동일하게 효과를 본다",
+        "알림이 오히려 방해가 되기도 한다",
+        "앱의 효과는 일관되지 않다"
+      ],
+      "answer": "모든 사용자들이 동일하게 효과를 본다",
+      "answerKey": "모든 사용자들이 동일하게 효과를 본다"
+    },
+    {
+      "no": 9,
+      "type": "mcq",
+      "question": "다음 대화의 밑줄 친 표현의 의미로 가장 적절한 것은?\nA: I heard you aced the mock test!\nB: Yeah, but I won’t rest on my laurels.",
+      "options": [
+        "성공을 자랑하다",
+        "현재 성과에 안주하지 않다",
+        "과거를 후회하다",
+        "칭찬을 거절하다",
+        "노력하지 않겠다고 선언하다"
+      ],
+      "answer": "현재 성과에 안주하지 않다",
+      "answerKey": "현재 성과에 안주하지 않다"
+    },
+    {
+      "no": 10,
+      "type": "mcq",
+      "question": "글의 흐름상 문장이 들어가기에 가장 적절한 위치는?\n[문장] As a result, schools are experimenting with hybrid schedules.\n(주어진 글) Many schools faced challenges during the pandemic. They adopted online tools to continue classes. Now they are evaluating what worked and what didn’t.",
+      "options": [
+        "첫 문장 앞",
+        "첫 문장 뒤",
+        "두 번째 문장 뒤",
+        "세 번째 문장 뒤",
+        "어느 위치에도 적절하지 않다"
+      ],
+      "answer": "두 번째 문장 뒤",
+      "answerKey": "두 번째 문장 뒤"
+    }
+  ]
+}
