@@ -13,10 +13,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { examId: string } }
+  context: { params: Promise<{ examId: string }> }
 ) {
   try {
-    const examId = params.examId;
+    const { examId } = await context.params;
     const supabase = createClient();
 
     console.log('[ExamDetail] examId:', examId);
@@ -234,10 +234,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { examId: string } }
+  context: { params: Promise<{ examId: string }> }
 ) {
   try {
-    const examId = params.examId;
+    const { examId } = await context.params;
     const supabase = createClient();
 
     // 1. exam_questions 삭제
