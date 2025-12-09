@@ -4,6 +4,8 @@
  * 시험 결과 조회
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ASSIGNMENT_STATUS, type SubmissionMetadata } from '@/types/database';

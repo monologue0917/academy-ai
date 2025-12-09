@@ -9,6 +9,8 @@
  * - 캐싱 지원
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateExplanation } from '@/lib/ai/openai';

@@ -4,6 +4,8 @@
  * 이 반에 추가 가능한 학생 목록 (아직 이 반에 없는 학생들)
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

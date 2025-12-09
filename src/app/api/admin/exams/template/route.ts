@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 
+
+export const dynamic = 'force-dynamic';
 /**
  * GET /api/admin/exams/template
  * 

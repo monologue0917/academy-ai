@@ -15,6 +15,8 @@
  * - reviewedToday: 오늘 복습한 수
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

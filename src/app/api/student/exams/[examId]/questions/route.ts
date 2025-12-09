@@ -9,6 +9,8 @@
  * - questions: id, type, content, choices (NOT options), metadata
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

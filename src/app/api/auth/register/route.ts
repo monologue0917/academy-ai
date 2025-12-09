@@ -17,6 +17,8 @@
  * - error: string (실패 시)
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import bcrypt from 'bcryptjs';

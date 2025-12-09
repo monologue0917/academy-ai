@@ -13,6 +13,8 @@
  * 없는 컬럼: status, scheduled_at, due_at, duration, class_id, created_by
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

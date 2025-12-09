@@ -4,6 +4,8 @@
  * 시험 결과 분석 API (선생님용)
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ASSIGNMENT_STATUS } from '@/types/database';

@@ -4,6 +4,8 @@
  * 학생에게 배정된 시험 목록 조회
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ASSIGNMENT_STATUS } from '@/types/database';

@@ -6,6 +6,8 @@
  * wrong_notes에 assignment_id 저장 → 배정 삭제 시 CASCADE 삭제
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ASSIGNMENT_STATUS, SUBMISSION_STATUS } from '@/types/database';

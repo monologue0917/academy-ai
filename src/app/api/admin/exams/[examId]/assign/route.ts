@@ -13,6 +13,8 @@
  * - 우리는 student_id만 사용 (개별 학생 배정)
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

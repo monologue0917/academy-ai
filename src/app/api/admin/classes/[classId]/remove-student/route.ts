@@ -4,6 +4,8 @@
  * 학생을 반에서 제거 (soft delete)
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { parseExcelFile } from '@/lib/excel';
 import { ImportQuestionsResponse, Question } from '@/types/exam';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ examId: string }> }

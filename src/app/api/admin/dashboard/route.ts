@@ -8,6 +8,8 @@
  * - recentExams: 최근 시험 목록 (최대 5개)
  */
 
+
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 

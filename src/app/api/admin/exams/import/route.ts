@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { createClient } from '@supabase/supabase-js';
 
+
+export const dynamic = 'force-dynamic';
 // Supabase client 생성
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
