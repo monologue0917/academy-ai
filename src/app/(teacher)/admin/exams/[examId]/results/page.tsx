@@ -55,7 +55,7 @@ interface ExamResultsData {
 export default function ExamResultsPage() {
   const params = useParams();
   const router = useRouter();
-  const examId = params.examId as string;
+  const examId = params?.examId as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<ExamResultsData | null>(null);

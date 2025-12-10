@@ -45,7 +45,7 @@ interface AvailableStudent {
 export default function ClassDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const classId = params.classId as string;
+  const classId = params?.classId as string;
   const { user } = useAuth();
 
   const [classInfo, setClassInfo] = useState<ClassDetail | null>(null);

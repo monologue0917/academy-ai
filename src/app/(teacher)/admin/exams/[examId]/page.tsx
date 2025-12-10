@@ -86,7 +86,7 @@ interface ExamDetailResponse {
 
 export default function ExamDetailPage() {
   const params = useParams();
-  const examId = params.examId as string;
+  const examId = params?.examId as string;
   const router = useRouter();
   const { user } = useAuth();
 

@@ -35,7 +35,7 @@ export default function ExamTakePage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  const examId = params.examId as string;
+  const examId = params?.examId as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [questions, setQuestions] = useState<Question[]>([]);

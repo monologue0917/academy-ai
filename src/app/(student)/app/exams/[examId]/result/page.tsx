@@ -44,7 +44,7 @@ export default function ExamResultPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const examId = params.examId as string;
+  const examId = params?.examId as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<ResultData | null>(null);

@@ -45,7 +45,7 @@ export default function ExamStartPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const examId = params.examId as string;
+  const examId = params?.examId as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
