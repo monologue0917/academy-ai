@@ -1,4 +1,5 @@
-// pages/api/admin/exams/[examId].ts
+// pages/api/admin/exams/[examId]/index.ts
+// 시험 상세 조회 / 삭제
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -27,7 +28,6 @@ export default async function handler(
           id,
           title,
           description,
-          duration,
           time_limit_minutes,
           total_points,
           passing_score,
@@ -38,7 +38,7 @@ export default async function handler(
           show_answer_after,
           created_at,
           updated_at,
-          teacher:users!exams_created_by_fkey(id, name, email)
+          created_by
         `)
         .eq('id', examId)
         .single();
@@ -114,7 +114,7 @@ export default async function handler(
           id: exam.id,
           title: exam.title,
           description: exam.description,
-          duration: exam.duration || exam.time_limit_minutes,
+          duration: exam.time_limit_minutes,
           timeLimitMinutes: exam.time_limit_minutes,
           totalPoints: exam.total_points,
           passingScore: exam.passing_score,
@@ -125,7 +125,7 @@ export default async function handler(
           showAnswerAfter: exam.show_answer_after,
           createdAt: exam.created_at,
           updatedAt: exam.updated_at,
-          teacher: exam.teacher,
+          createdBy: exam.created_by,
           status: 'published',
         },
         questions: formattedQuestions,
@@ -148,6 +148,10 @@ export default async function handler(
   // DELETE: 시험 삭제
   if (req.method === 'DELETE') {
     try {
+      // 관련 데이터 먼저 삭제
+      await supabase.from('exam_assignments').delete().eq('exam_id', examId);
+      await supabase.from('exam_questions').delete().eq('exam_id', examId);
+
       const { error } = await supabase
         .from('exams')
         .delete()

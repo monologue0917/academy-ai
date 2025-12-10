@@ -1,4 +1,5 @@
-// pages/api/student/exams/[examId].ts
+// pages/api/student/exams/[examId]/index.ts
+// 학생용 시험 기본 정보 조회
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -26,7 +27,6 @@ export default async function handler(
           id,
           title,
           description,
-          duration,
           time_limit_minutes,
           total_points,
           instructions
@@ -44,7 +44,7 @@ export default async function handler(
           id: exam.id,
           title: exam.title,
           description: exam.description,
-          duration: exam.duration || exam.time_limit_minutes,
+          duration: exam.time_limit_minutes,
           timeLimitMinutes: exam.time_limit_minutes,
           totalPoints: exam.total_points,
           instructions: exam.instructions,

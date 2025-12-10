@@ -23,13 +23,14 @@ export default async function handler(
         id,
         title,
         description,
-        duration,
         time_limit_minutes,
         total_points,
         created_at,
-        teacher:users!exams_created_by_fkey(id, name)
+        created_by
       `)
       .order('created_at', { ascending: false });
+
+    console.log('Exams query result:', { exams, error });
 
     if (error) {
       return res.status(500).json({ success: false, error: error.message });
@@ -52,10 +53,10 @@ export default async function handler(
           id: exam.id,
           title: exam.title,
           description: exam.description,
-          duration: exam.duration || exam.time_limit_minutes,
+          duration: exam.time_limit_minutes,
           totalPoints: exam.total_points,
           createdAt: exam.created_at,
-          teacher: exam.teacher,
+          createdBy: exam.created_by,
           questionCount: questionCount || 0,
           assignmentCount: assignmentCount || 0,
           status: 'published',
