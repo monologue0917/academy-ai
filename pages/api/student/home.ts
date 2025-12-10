@@ -23,10 +23,7 @@ export default async function handler(
       return res.status(400).json({ success: false, error: 'studentId 필요' });
     }
 
-    // 오늘 날짜
-    const today = new Date().toISOString().split('T')[0];
-
-    // 배정된 시험 조회
+    // 배정된 시험 조회 (진행 전/진행 중)
     const { data: examAssignments } = await supabase
       .from('exam_assignments')
       .select(`
@@ -34,7 +31,7 @@ export default async function handler(
         status,
         start_time,
         end_time,
-        exam:exams(id, title, duration, time_limit_minutes, total_points)
+        exam:exams(id, title, time_limit_minutes, total_points)
       `)
       .eq('student_id', studentId)
       .in('status', ['scheduled', 'ongoing'])
@@ -54,22 +51,25 @@ export default async function handler(
       .select(`
         id,
         score,
-        max_score,
-        submitted_at,
+        total_score,
+        completed_at,
         exam:exams(id, title)
       `)
       .eq('student_id', studentId)
       .eq('status', 'graded')
-      .order('submitted_at', { ascending: false })
+      .order('completed_at', { ascending: false })
       .limit(3);
 
-    const todayExams = (examAssignments || [])
-      .filter((a: any) => a.end_time?.startsWith(today))
+    // 오늘의 할 일: 마감이 안 지난 진행 전/진행 중 시험 모두 표시
+    const now = new Date();
+    const upcomingExams = (examAssignments || [])
+      .filter((a: any) => new Date(a.end_time) >= now)
       .map((a: any) => ({
         assignmentId: a.id,
         examId: a.exam?.id,
         title: a.exam?.title || '시험',
-        duration: a.exam?.duration || a.exam?.time_limit_minutes || 60,
+        duration: a.exam?.time_limit_minutes || 60,
+        totalPoints: a.exam?.total_points || 0,
         status: a.status,
         endTime: a.end_time,
       }));
@@ -77,14 +77,14 @@ export default async function handler(
     return res.status(200).json({
       success: true,
       data: {
-        todayExams,
+        todayExams: upcomingExams, // 마감 전인 모든 시험
         todayHomeworks: [],
         wrongNoteCount: wrongNoteCount || 0,
         recentResults: (recentResults || []).map((r: any) => ({
           examTitle: r.exam?.title || '시험',
           score: r.score,
-          maxScore: r.max_score,
-          submittedAt: r.submitted_at,
+          maxScore: r.total_score,
+          submittedAt: r.completed_at,
         })),
         weakAreas: [],
       },
