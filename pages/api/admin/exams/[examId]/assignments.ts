@@ -1,5 +1,5 @@
 // pages/api/admin/exams/[examId]/assignments.ts
-// 개별 배정 삭제
+// 개별 배정 삭제 (관련 데이터 모두 정리)
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -28,10 +28,10 @@ export default async function handler(
   }
 
   try {
-    // 1. 해당 배정이 이 시험의 것인지 확인
+    // 1. 해당 배정 확인
     const { data: assignment, error: fetchError } = await supabase
       .from('exam_assignments')
-      .select('id, status')
+      .select('id, student_id, status')
       .eq('id', assignmentId)
       .eq('exam_id', examId)
       .single();
@@ -40,19 +40,39 @@ export default async function handler(
       return res.status(404).json({ success: false, error: '배정을 찾을 수 없습니다' });
     }
 
-    // 이미 완료된 시험은 삭제 불가 (선택적)
-    // if (assignment.status === 'completed') {
-    //   return res.status(400).json({ success: false, error: '완료된 시험 배정은 삭제할 수 없습니다' });
-    // }
-
-    // 2. 관련 submission_answers 삭제
+    // 2. 관련 submissions 조회
     const { data: submissions } = await supabase
       .from('submissions')
       .select('id')
-      .eq('exam_id', examId)
-      .eq('student_id', assignment.id); // student_id와 assignment 연결 필요
+      .eq('assignment_id', assignmentId);
 
-    // 3. 배정 삭제
+    const submissionIds = (submissions || []).map(s => s.id);
+
+    // 3. submission_answers 삭제 (먼저!)
+    if (submissionIds.length > 0) {
+      const { error: answersError } = await supabase
+        .from('submission_answers')
+        .delete()
+        .in('submission_id', submissionIds);
+
+      if (answersError) {
+        console.error('Delete submission_answers error:', answersError);
+      }
+    }
+
+    // 4. submissions 삭제
+    if (submissionIds.length > 0) {
+      const { error: subError } = await supabase
+        .from('submissions')
+        .delete()
+        .eq('assignment_id', assignmentId);
+
+      if (subError) {
+        console.error('Delete submissions error:', subError);
+      }
+    }
+
+    // 5. exam_assignment 삭제
     const { error: deleteError } = await supabase
       .from('exam_assignments')
       .delete()
@@ -63,7 +83,16 @@ export default async function handler(
       return res.status(500).json({ success: false, error: deleteError.message });
     }
 
-    return res.status(200).json({ success: true, message: '배정이 삭제되었습니다' });
+    console.log(`[Assignments] Deleted: assignment=${assignmentId}, submissions=${submissionIds.length}`);
+
+    return res.status(200).json({ 
+      success: true, 
+      message: '배정이 삭제되었습니다',
+      deleted: {
+        assignment: 1,
+        submissions: submissionIds.length,
+      }
+    });
   } catch (err) {
     console.error('Delete assignment error:', err);
     return res.status(500).json({ success: false, error: '서버 오류' });

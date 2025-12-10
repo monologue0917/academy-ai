@@ -145,23 +145,88 @@ export default async function handler(
     }
   }
 
-  // DELETE: 시험 삭제
+  // DELETE: 시험 삭제 (모든 관련 데이터 정리)
   if (req.method === 'DELETE') {
     try {
-      // 관련 데이터 먼저 삭제
-      await supabase.from('exam_assignments').delete().eq('exam_id', examId);
-      await supabase.from('exam_questions').delete().eq('exam_id', examId);
+      console.log(`[Exam DELETE] Starting deletion for exam: ${examId}`);
 
-      const { error } = await supabase
+      // 1. 해당 시험의 모든 배정 ID 조회
+      const { data: assignments } = await supabase
+        .from('exam_assignments')
+        .select('id')
+        .eq('exam_id', examId);
+
+      const assignmentIds = (assignments || []).map(a => a.id);
+      console.log(`[Exam DELETE] Found ${assignmentIds.length} assignments`);
+
+      // 2. 해당 배정들의 모든 submission ID 조회
+      let submissionIds: string[] = [];
+      if (assignmentIds.length > 0) {
+        const { data: submissions } = await supabase
+          .from('submissions')
+          .select('id')
+          .in('assignment_id', assignmentIds);
+        
+        submissionIds = (submissions || []).map(s => s.id);
+        console.log(`[Exam DELETE] Found ${submissionIds.length} submissions`);
+      }
+
+      // 3. submission_answers 삭제 (가장 먼저!)
+      if (submissionIds.length > 0) {
+        const { error: saError } = await supabase
+          .from('submission_answers')
+          .delete()
+          .in('submission_id', submissionIds);
+        
+        if (saError) console.error('submission_answers delete error:', saError);
+      }
+
+      // 4. submissions 삭제
+      if (assignmentIds.length > 0) {
+        const { error: subError } = await supabase
+          .from('submissions')
+          .delete()
+          .in('assignment_id', assignmentIds);
+        
+        if (subError) console.error('submissions delete error:', subError);
+      }
+
+      // 5. exam_assignments 삭제
+      const { error: assignError } = await supabase
+        .from('exam_assignments')
+        .delete()
+        .eq('exam_id', examId);
+      
+      if (assignError) console.error('exam_assignments delete error:', assignError);
+
+      // 6. exam_questions 삭제
+      const { error: eqError } = await supabase
+        .from('exam_questions')
+        .delete()
+        .eq('exam_id', examId);
+      
+      if (eqError) console.error('exam_questions delete error:', eqError);
+
+      // 7. exams 삭제
+      const { error: examError } = await supabase
         .from('exams')
         .delete()
         .eq('id', examId);
 
-      if (error) {
-        return res.status(500).json({ success: false, error: error.message });
+      if (examError) {
+        return res.status(500).json({ success: false, error: examError.message });
       }
 
-      return res.status(200).json({ success: true, message: '시험이 삭제되었습니다' });
+      console.log(`[Exam DELETE] Successfully deleted exam: ${examId}`);
+
+      return res.status(200).json({ 
+        success: true, 
+        message: '시험이 삭제되었습니다',
+        deleted: {
+          assignments: assignmentIds.length,
+          submissions: submissionIds.length,
+        }
+      });
     } catch (err) {
       console.error('Exam DELETE error:', err);
       return res.status(500).json({ success: false, error: '서버 오류' });

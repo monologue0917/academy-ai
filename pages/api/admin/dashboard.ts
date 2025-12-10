@@ -17,40 +17,76 @@ export default async function handler(
   }
 
   try {
-    const { academyId, teacherId } = req.query;
+    const { academyId } = req.query;
 
-    // 반 개수
+    // 1. 반 개수
     const { count: classCount } = await supabase
       .from('classes')
       .select('*', { count: 'exact', head: true })
       .eq('is_active', true);
 
-    // 학생 수
+    // 2. 학생 수
     const { count: studentCount } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'student');
 
-    // 시험 수
-    const { count: examCount } = await supabase
-      .from('exams')
-      .select('*', { count: 'exact', head: true });
+    // 3. 미제출/진행 중 배정 수 (pending)
+    const { count: pendingCount } = await supabase
+      .from('exam_assignments')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['scheduled', 'ongoing']);
 
-    // 최근 시험 목록
-    const { data: recentExams } = await supabase
+    // 4. 최근 시험 목록 (상세 정보 포함)
+    const { data: exams } = await supabase
       .from('exams')
-      .select('id, title, created_at')
+      .select('id, title, created_at, total_points')
       .order('created_at', { ascending: false })
       .limit(5);
+
+    // 5. 각 시험별 배정/완료 현황
+    const recentExams = await Promise.all(
+      (exams || []).map(async (exam: any) => {
+        // 배정 현황
+        const { data: assignments } = await supabase
+          .from('exam_assignments')
+          .select('id, status')
+          .eq('exam_id', exam.id);
+
+        const totalStudents = assignments?.length || 0;
+        const completedCount = assignments?.filter((a: any) => a.status === 'completed').length || 0;
+
+        // 평균 점수
+        const { data: submissions } = await supabase
+          .from('submissions')
+          .select('score')
+          .eq('assignment_id', assignments?.map((a: any) => a.id) || []);
+
+        const scores = (submissions || []).map((s: any) => s.score).filter((s: any) => s !== null);
+        const averageScore = scores.length > 0
+          ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
+          : 0;
+
+        return {
+          id: exam.id,
+          title: exam.title,
+          className: '',  // 시험은 반과 직접 연결 안 됨
+          status: completedCount === totalStudents && totalStudents > 0 ? 'completed' : 'ongoing',
+          averageScore,
+          completedCount,
+          totalStudents,
+        };
+      })
+    );
 
     return res.status(200).json({
       success: true,
       stats: {
         classCount: classCount || 0,
         studentCount: studentCount || 0,
-        examCount: examCount || 0,
+        pendingCount: pendingCount || 0,
       },
-      recentExams: recentExams || [],
+      recentExams,
     });
   } catch (err) {
     console.error('Dashboard error:', err);

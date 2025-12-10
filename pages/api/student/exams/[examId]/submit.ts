@@ -48,6 +48,7 @@ export default async function handler(
       .single();
 
     if (assignError || !assignment) {
+      console.error('Assignment error:', assignError);
       return res.status(403).json({ success: false, error: '시험 권한이 없습니다' });
     }
 
@@ -55,7 +56,14 @@ export default async function handler(
       return res.status(400).json({ success: false, error: '이미 제출한 시험입니다' });
     }
 
-    // 2. 문제 및 정답 조회
+    // 2. 학생의 academy_id 조회
+    const { data: student } = await supabase
+      .from('users')
+      .select('academy_id')
+      .eq('id', studentId)
+      .single();
+
+    // 3. 문제 및 정답 조회
     const { data: examQuestions, error: qError } = await supabase
       .from('exam_questions')
       .select(`
@@ -67,22 +75,28 @@ export default async function handler(
       .eq('exam_id', examId);
 
     if (qError || !examQuestions) {
+      console.error('Questions error:', qError);
       return res.status(500).json({ success: false, error: '문제 조회 실패' });
     }
 
-    // 정답 맵 생성
-    const answerMap = new Map<string, { correctAnswer: string; points: number }>();
+    // 정답 맵 생성 (question_id 기준)
+    const answerMap = new Map<string, { correctAnswer: string; points: number; questionId: string }>();
     examQuestions.forEach((eq: any) => {
-      answerMap.set(eq.id, {
-        correctAnswer: eq.question?.correct_answer || '',
-        points: eq.points || 1,
-      });
+      const questionId = eq.question?.id;
+      if (questionId) {
+        answerMap.set(eq.id, {
+          correctAnswer: eq.question?.correct_answer || '',
+          points: eq.points || 1,
+          questionId: questionId,
+        });
+      }
     });
 
-    // 3. 채점
+    // 4. 채점
     let score = 0;
     let correctCount = 0;
     const totalCount = examQuestions.length;
+    const maxScore = examQuestions.reduce((sum: number, eq: any) => sum + (eq.points || 1), 0);
 
     const gradedAnswers = answers.map((ans) => {
       const questionData = answerMap.get(ans.examQuestionId);
@@ -90,51 +104,54 @@ export default async function handler(
         ? ans.answer.trim() === questionData.correctAnswer.trim()
         : false;
       
-      if (isCorrect && questionData) {
-        score += questionData.points;
+      const earnedPoints = isCorrect ? (questionData?.points || 0) : 0;
+      if (isCorrect) {
+        score += earnedPoints;
         correctCount++;
       }
 
       return {
-        exam_question_id: ans.examQuestionId,
-        question_id: ans.questionId,
+        question_id: questionData?.questionId || ans.questionId,
         student_answer: ans.answer,
         is_correct: isCorrect,
-        earned_points: isCorrect ? (questionData?.points || 0) : 0,
+        points_earned: earnedPoints,
+        max_points: questionData?.points || 0,
       };
     });
 
-    // 4. submission 생성
+    // 5. submission 생성
+    const now = new Date().toISOString();
     const { data: submission, error: subError } = await supabase
       .from('submissions')
       .insert({
-        exam_id: examId,
+        academy_id: student?.academy_id,
         student_id: studentId,
+        assignment_type: 'exam',
         assignment_id: assignment.id,
-        score,
-        total_score: examQuestions.reduce((sum: number, eq: any) => sum + (eq.points || 1), 0),
-        correct_count: correctCount,
-        total_count: totalCount,
-        time_spent: timeSpent || 0,
         status: 'graded',
-        completed_at: new Date().toISOString(),
+        score,
+        max_score: maxScore,
+        started_at: now,
+        submitted_at: now,
+        graded_at: now,
+        time_spent_seconds: timeSpent || 0,
       })
       .select()
       .single();
 
     if (subError) {
       console.error('Submission insert error:', subError);
-      return res.status(500).json({ success: false, error: '제출 저장 실패' });
+      return res.status(500).json({ success: false, error: `제출 저장 실패: ${subError.message}` });
     }
 
-    // 5. submission_answers 생성
+    // 6. submission_answers 생성 (올바른 컬럼명 사용)
     const answersToInsert = gradedAnswers.map((ga) => ({
       submission_id: submission.id,
-      exam_question_id: ga.exam_question_id,
       question_id: ga.question_id,
       student_answer: ga.student_answer,
       is_correct: ga.is_correct,
-      earned_points: ga.earned_points,
+      points_earned: ga.points_earned,
+      max_points: ga.max_points,
     }));
 
     const { error: ansError } = await supabase
@@ -143,15 +160,14 @@ export default async function handler(
 
     if (ansError) {
       console.error('Submission answers insert error:', ansError);
-      // 계속 진행 (치명적이지 않음)
     }
 
-    // 6. assignment 상태 업데이트
+    // 7. assignment 상태 업데이트
     await supabase
       .from('exam_assignments')
       .update({ 
         status: 'completed',
-        completed_at: new Date().toISOString(),
+        updated_at: now,
       })
       .eq('id', assignment.id);
 
@@ -161,7 +177,7 @@ export default async function handler(
       submission: {
         id: submission.id,
         score,
-        totalScore: submission.total_score,
+        totalScore: maxScore,
         correctCount,
         totalCount,
       },

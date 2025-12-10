@@ -29,6 +29,7 @@ export default async function handler(
           name,
           description,
           grade,
+          subject,
           is_active,
           created_at,
           teacher:users!classes_teacher_id_fkey(id, name)
@@ -72,6 +73,7 @@ export default async function handler(
           name: classData.name,
           description: classData.description,
           grade: classData.grade,
+          subject: classData.subject,
           teacher: classData.teacher,
         },
         students,
@@ -83,15 +85,38 @@ export default async function handler(
   }
 
   // DELETE: 반 삭제
+  // - class_enrollments만 삭제 (반-학생 연결)
+  // - exam_assignments는 유지 (학생 시험 기록 보존)
+  // - 이유: 학생이 반을 옮기거나, 특강반이 끝나도 성적 기록은 남아야 함
   if (req.method === 'DELETE') {
     try {
-      // 먼저 class_enrollments 삭제
+      // 1. 진행 중인 시험 배정이 있는지 확인 (경고용)
+      const { data: enrollments } = await supabase
+        .from('class_enrollments')
+        .select('student_id')
+        .eq('class_id', classId)
+        .eq('is_active', true);
+
+      const studentIds = (enrollments || []).map(e => e.student_id);
+      
+      let ongoingCount = 0;
+      if (studentIds.length > 0) {
+        const { count } = await supabase
+          .from('exam_assignments')
+          .select('*', { count: 'exact', head: true })
+          .in('student_id', studentIds)
+          .in('status', ['scheduled', 'ongoing']);
+        
+        ongoingCount = count || 0;
+      }
+
+      // 2. class_enrollments 삭제 (반-학생 연결만 끊음)
       await supabase
         .from('class_enrollments')
         .delete()
         .eq('class_id', classId);
 
-      // 반 삭제
+      // 3. 반 삭제
       const { error } = await supabase
         .from('classes')
         .delete()
@@ -101,7 +126,15 @@ export default async function handler(
         return res.status(500).json({ success: false, error: error.message });
       }
 
-      return res.status(200).json({ success: true, message: '반이 삭제되었습니다' });
+      console.log(`[Class DELETE] Deleted class: ${classId}, students: ${studentIds.length}, ongoing assignments: ${ongoingCount}`);
+
+      return res.status(200).json({ 
+        success: true, 
+        message: '반이 삭제되었습니다',
+        note: ongoingCount > 0 
+          ? `${ongoingCount}개의 진행 중인 시험 배정은 유지됩니다 (학생 기록 보존)`
+          : undefined,
+      });
     } catch (err) {
       console.error('Class DELETE error:', err);
       return res.status(500).json({ success: false, error: '서버 오류' });

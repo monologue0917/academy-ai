@@ -39,11 +39,23 @@ export default async function handler(
       return res.status(404).json({ success: false, error: '시험을 찾을 수 없습니다' });
     }
 
-    // 2. 제출 정보
+    // 2. assignment 조회
+    const { data: assignment, error: assignError } = await supabase
+      .from('exam_assignments')
+      .select('id')
+      .eq('exam_id', examId)
+      .eq('student_id', studentId)
+      .single();
+
+    if (assignError || !assignment) {
+      return res.status(404).json({ success: false, error: '배정 정보를 찾을 수 없습니다' });
+    }
+
+    // 3. 제출 정보 (assignment_id로 조회)
     const { data: submission, error: subError } = await supabase
       .from('submissions')
       .select('*')
-      .eq('exam_id', examId)
+      .eq('assignment_id', assignment.id)
       .eq('student_id', studentId)
       .single();
 
@@ -51,20 +63,20 @@ export default async function handler(
       return res.status(404).json({ success: false, error: '제출 기록이 없습니다' });
     }
 
-    // 3. 문제별 답안 조회
+    // 4. 문제별 답안 조회 (올바른 컬럼명 사용)
     const { data: submissionAnswers } = await supabase
       .from('submission_answers')
       .select(`
         id,
-        exam_question_id,
         question_id,
         student_answer,
         is_correct,
-        earned_points
+        points_earned,
+        max_points
       `)
       .eq('submission_id', submission.id);
 
-    // 4. 문제 정보 조회
+    // 5. 문제 정보 조회
     const { data: examQuestions } = await supabase
       .from('exam_questions')
       .select(`
@@ -82,17 +94,19 @@ export default async function handler(
       .eq('exam_id', examId)
       .order('order_num');
 
-    // 답안 맵 생성
+    // 답안 맵 생성 (question_id 기준)
     const answerMap = new Map();
     (submissionAnswers || []).forEach((sa: any) => {
-      answerMap.set(sa.exam_question_id, sa);
+      answerMap.set(sa.question_id, sa);
     });
 
-    // 5. 결과 포맷팅
+    // 6. 결과 포맷팅
+    const questionCount = examQuestions?.length || 0;
     const answers = (examQuestions || []).map((eq: any) => {
-      const studentAnswer = answerMap.get(eq.id);
+      const questionId = eq.question?.id;
+      const studentAnswer = answerMap.get(questionId);
       return {
-        questionId: eq.question?.id || eq.id,
+        questionId: questionId || eq.id,
         orderNum: eq.order_num,
         content: eq.question?.content || '',
         choices: eq.question?.choices || [],
@@ -100,13 +114,15 @@ export default async function handler(
         correctAnswer: eq.question?.correct_answer || '',
         isCorrect: studentAnswer?.is_correct || false,
         points: eq.points,
-        earnedPoints: studentAnswer?.earned_points || 0,
+        earnedPoints: studentAnswer?.points_earned || 0,
         explanation: eq.question?.explanation || null,
       };
     });
 
-    const percentage = exam.total_points > 0
-      ? Math.round((submission.score / exam.total_points) * 100)
+    // 정답 개수 계산
+    const correctCount = answers.filter(a => a.isCorrect).length;
+    const percentage = submission.max_score > 0
+      ? Math.round((submission.score / submission.max_score) * 100)
       : 0;
 
     return res.status(200).json({
@@ -115,15 +131,15 @@ export default async function handler(
         id: exam.id,
         title: exam.title,
         totalPoints: exam.total_points,
-        questionCount: answers.length,
+        questionCount,
       },
       result: {
         score: submission.score,
-        totalScore: submission.total_score,
+        totalScore: submission.max_score,
         percentage,
-        correctCount: submission.correct_count,
-        totalCount: submission.total_count,
-        completedAt: submission.completed_at,
+        correctCount,
+        totalCount: questionCount,
+        completedAt: submission.submitted_at,
       },
       answers,
     });

@@ -38,6 +38,7 @@ export default async function handler(
       .single();
 
     if (assignError || !assignment) {
+      console.error('Assignment fetch error:', assignError);
       return res.status(403).json({ success: false, error: '시험 권한이 없습니다' });
     }
 
@@ -51,18 +52,18 @@ export default async function handler(
       return res.status(403).json({ success: false, error: '시험 기간이 종료되었습니다' });
     }
 
-    // 2. 상태 업데이트 (ongoing)
+    // 2. 상태 업데이트 (ongoing) - started_at 컬럼 없이
     const { error: updateError } = await supabase
       .from('exam_assignments')
       .update({ 
         status: 'ongoing',
-        started_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .eq('id', assignment.id);
 
     if (updateError) {
       console.error('Assignment update error:', updateError);
-      return res.status(500).json({ success: false, error: '시험 시작 실패' });
+      return res.status(500).json({ success: false, error: updateError.message });
     }
 
     return res.status(200).json({
