@@ -34,7 +34,6 @@ export default async function handler(
           id,
           title,
           description,
-          duration,
           time_limit_minutes,
           total_points
         )
@@ -55,7 +54,7 @@ export default async function handler(
         id: a.exam.id,
         title: a.exam.title,
         description: a.exam.description,
-        duration: a.exam.duration || a.exam.time_limit_minutes,
+        duration: a.exam.time_limit_minutes,
         totalPoints: a.exam.total_points,
       } : null,
     }));
